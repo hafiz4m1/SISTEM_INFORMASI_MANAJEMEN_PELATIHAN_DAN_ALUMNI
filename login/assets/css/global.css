@@ -1,0 +1,139 @@
+/**
+ * global.css - Style tambahan untuk semua halaman
+ * Taruh di login/assets/css/global.css
+ * Include di semua header.php:
+ * <link rel="stylesheet" href="../assets/css/global.css">
+ */
+
+/* ===== LOADING OVERLAY ===== */
+#loading-overlay {
+  position: fixed; inset: 0;
+  background: rgba(255,255,255,.85);
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+}
+#loading-overlay.show { display: flex; }
+#loading-overlay .spinner {
+  width: 40px; height: 40px;
+  border: 4px solid #e5e9f0;
+  border-top-color: #1a4c8e;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+#loading-overlay p { font-size: 13px; color: #6b7280; margin: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== BREADCRUMB ===== */
+.breadcrumb-bar {
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 8px 24px;
+  font-size: 12px;
+  color: #6b7280;
+}
+.breadcrumb-bar a { color: #1a4c8e; text-decoration: none; }
+.breadcrumb-bar a:hover { text-decoration: underline; }
+.breadcrumb-bar .sep { margin: 0 6px; opacity: .4; }
+
+/* ===== TOAST NOTIFIKASI ===== */
+.toast-container { position: fixed; top: 16px; right: 16px; z-index: 9998; }
+.toast-custom {
+  min-width: 280px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.12);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: slideIn .3s ease;
+  margin-bottom: 8px;
+}
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+.toast-custom .toast-icon { font-size: 20px; flex-shrink: 0; }
+.toast-custom .toast-msg  { font-size: 13px; color: #1a2942; flex: 1; }
+.toast-custom .toast-close { cursor: pointer; color: #9ca3af; font-size: 16px; }
+.toast-custom.toast-success { border-left: 4px solid #28a745; }
+.toast-custom.toast-danger  { border-left: 4px solid #dc3545; }
+.toast-custom.toast-warning { border-left: 4px solid #ffc107; }
+.toast-custom.toast-info    { border-left: 4px solid #1a4c8e; }
+
+/* ===== MODAL KONFIRMASI HAPUS ===== */
+.modal-hapus .modal-content { border-radius: 14px; border: none; }
+.modal-hapus .modal-header  { border-bottom: none; padding: 24px 24px 0; }
+.modal-hapus .modal-body    { padding: 16px 24px; text-align: center; }
+.modal-hapus .modal-footer  { border-top: none; padding: 0 24px 24px; justify-content: center; gap: 8px; }
+.modal-hapus .icon-hapus    { font-size: 52px; color: #dc3545; margin-bottom: 8px; }
+
+/* ===== RESPONSIVE SIDEBAR ===== */
+@media (max-width: 768px) {
+  #sidebar {
+    transform: translateX(-100%);
+    transition: transform .25s;
+  }
+  #sidebar.open { transform: translateX(0); }
+  #main { margin-left: 0 !important; }
+  #topbar { padding: 10px 16px; }
+  .content-area { padding: 16px; }
+  #hamburger { display: flex !important; }
+  #overlay-sidebar {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 99;
+  }
+  #overlay-sidebar.show { display: block; }
+}
+#hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px; height: 36px;
+  border: none; background: none;
+  cursor: pointer; color: #6b7280;
+  font-size: 20px;
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  #sidebar, #topbar, .breadcrumb-bar,
+  .btn, .filter-form, .nav-tabs,
+  #loading-overlay, .toast-container { display: none !important; }
+  #main { margin-left: 0 !important; }
+  .content-area { padding: 0 !important; }
+  .card { box-shadow: none !important; border: 1px solid #ddd !important; }
+  body { font-size: 11pt; }
+}
+
+/* ===== SCROLL TO TOP ===== */
+#scroll-top {
+  position: fixed; bottom: 24px; right: 24px;
+  width: 40px; height: 40px;
+  background: #1a4c8e; color: #fff;
+  border: none; border-radius: 50%;
+  display: none; align-items: center; justify-content: center;
+  font-size: 18px; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  z-index: 100; transition: opacity .2s;
+}
+#scroll-top.show { display: flex; }
+#scroll-top:hover { background: #123570; }
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  text-align: center; padding: 60px 24px; color: #9ca3af;
+}
+.empty-state i { font-size: 52px; opacity: .3; display: block; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; margin: 0; }
+
+/* ===== TABEL RESPONSIVE ===== */
+.table-responsive { border-radius: 0 0 12px 12px; }
+.table td, .table th { white-space: nowrap; }
+.table td.wrap, .table th.wrap { white-space: normal; }

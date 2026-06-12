@@ -1,0 +1,106 @@
+<?php
+ob_start();
+$page_title = 'Tambah Pelatihan';
+include '../koneksi.php';
+include 'header.php';
+
+$errors = [];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $nama      = mysqli_real_escape_string($koneksi, $_POST['nama_pelatihan']);
+    $jenis     = mysqli_real_escape_string($koneksi, $_POST['jenis']);
+    $desc      = mysqli_real_escape_string($koneksi, $_POST['deskripsi']);
+    $tgl_mulai = $_POST['tanggal_mulai'];
+    $tgl_akhir = $_POST['tanggal_selesai'];
+    $kuota     = (int)$_POST['kuota'];
+    $instr_id  = (int)$_POST['instruktur_id'];
+    $lokasi    = mysqli_real_escape_string($koneksi, $_POST['lokasi']);
+    $status    = $_POST['status'];
+
+    if (!$nama) $errors[] = 'Nama pelatihan wajib diisi.';
+    if (!$tgl_mulai || !$tgl_akhir) $errors[] = 'Tanggal mulai dan selesai wajib diisi.';
+    if ($tgl_akhir < $tgl_mulai) $errors[] = 'Tanggal selesai tidak boleh sebelum tanggal mulai.';
+    if ($kuota < 1) $errors[] = 'Kuota minimal 1.';
+    if (!$instr_id) $errors[] = 'Instruktur wajib dipilih.';
+
+    if (!$errors) {
+        mysqli_query($koneksi, "INSERT INTO pelatihan
+            (nama_pelatihan, jenis, deskripsi, tanggal_mulai, tanggal_selesai, kuota, instruktur_id, lokasi, status)
+            VALUES ('$nama','$jenis','$desc','$tgl_mulai','$tgl_akhir',$kuota,$instr_id,'$lokasi','$status')");
+        ob_end_clean();
+        header("Location: pelatihan.php?pesan=Pelatihan berhasil ditambahkan.");
+        exit;
+    }
+}
+
+$instruktur = mysqli_query($koneksi, "SELECT i.id, u.name FROM instruktur i JOIN users u ON i.user_id=u.id ORDER BY u.name");
+?>
+
+<div class="d-flex align-items-center gap-2 mb-3">
+  <a href="pelatihan.php" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+  <h6 class="mb-0 fw-semibold">Tambah Pelatihan Baru</h6>
+</div>
+
+<?php if ($errors): ?>
+  <div class="alert alert-danger"><ul class="mb-0 ps-3"><?php foreach($errors as $e) echo "<li>$e</li>"; ?></ul></div>
+<?php endif; ?>
+
+<div class="card">
+  <div class="card-body p-4">
+    <form method="POST">
+      <div class="row g-3">
+        <div class="col-md-8">
+          <label class="form-label fw-semibold">Nama Pelatihan <span class="text-danger">*</span></label>
+          <input type="text" name="nama_pelatihan" class="form-control" value="<?= htmlspecialchars($_POST['nama_pelatihan'] ?? '') ?>" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Jenis Pelatihan</label>
+          <input type="text" name="jenis" class="form-control" value="<?= htmlspecialchars($_POST['jenis'] ?? '') ?>" placeholder="cth: Teknis, Manajerial">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Tanggal Mulai <span class="text-danger">*</span></label>
+          <input type="date" name="tanggal_mulai" class="form-control" value="<?= $_POST['tanggal_mulai'] ?? '' ?>" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Tanggal Selesai <span class="text-danger">*</span></label>
+          <input type="date" name="tanggal_selesai" class="form-control" value="<?= $_POST['tanggal_selesai'] ?? '' ?>" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Kuota Peserta <span class="text-danger">*</span></label>
+          <input type="number" name="kuota" class="form-control" value="<?= $_POST['kuota'] ?? 30 ?>" min="1" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Instruktur <span class="text-danger">*</span></label>
+          <select name="instruktur_id" class="form-select" required>
+            <option value="">-- Pilih Instruktur --</option>
+            <?php while ($i = mysqli_fetch_assoc($instruktur)): ?>
+              <option value="<?= $i['id'] ?>" <?= ($_POST['instruktur_id'] ?? '') == $i['id'] ? 'selected' : '' ?>><?= htmlspecialchars($i['name']) ?></option>
+            <?php endwhile; ?>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Lokasi</label>
+          <input type="text" name="lokasi" class="form-control" value="<?= htmlspecialchars($_POST['lokasi'] ?? '') ?>">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label fw-semibold">Status</label>
+          <select name="status" class="form-select">
+            <option value="aktif" <?= ($_POST['status'] ?? 'aktif') === 'aktif' ? 'selected' : '' ?>>Aktif</option>
+            <option value="selesai" <?= ($_POST['status'] ?? '') === 'selesai' ? 'selected' : '' ?>>Selesai</option>
+            <option value="dibatalkan" <?= ($_POST['status'] ?? '') === 'dibatalkan' ? 'selected' : '' ?>>Dibatalkan</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold">Deskripsi</label>
+          <textarea name="deskripsi" class="form-control" rows="3"><?= htmlspecialchars($_POST['deskripsi'] ?? '') ?></textarea>
+        </div>
+        <div class="col-12 d-flex gap-2">
+          <button type="submit" class="btn btn-primary px-4">Simpan</button>
+          <a href="pelatihan.php" class="btn btn-outline-secondary">Batal</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<?php ob_end_flush(); include 'footer.php'; ?>
