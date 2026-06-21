@@ -7,6 +7,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['level'] !== 'admin') {
 }
 $current = basename($_SERVER['PHP_SELF']);
 include_once '../koneksi.php';
+include_once '../security.php';
 ?>
 <!DOCTYPE html>
 <html lang="id">

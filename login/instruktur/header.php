@@ -6,6 +6,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['level'] !== 'instruktur') {
 }
 $current = basename($_SERVER['PHP_SELF']);
 include_once '../koneksi.php';
+include_once '../security.php';
 $instruktur = mysqli_fetch_assoc(mysqli_query($koneksi,
     "SELECT * FROM instruktur WHERE user_id={$_SESSION['id_login']}"));
 $instruktur_id = $instruktur['id'] ?? 0;

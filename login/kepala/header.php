@@ -7,6 +7,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['level'] !== 'kepala') {
 }
 $current = basename($_SERVER['PHP_SELF']);
 include_once '../koneksi.php';
+include_once '../security.php';
 
 // Ambil data kepala
 $kepala_data = mysqli_fetch_assoc(mysqli_query($koneksi,

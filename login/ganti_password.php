@@ -60,8 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ganti_password'])) {
 }
 
 if ($is_logged_in) {
-    $user = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT * FROM users WHERE id=$uid"));
-    $email_input = $user['email'];
+    $user = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT * FROM users WHERE id=" . (int)$uid));
+    $email_input = $user['email'] ?? '';
 }
 ?>
 <!DOCTYPE html>

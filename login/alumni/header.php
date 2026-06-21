@@ -6,6 +6,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['level'] !== 'alumni') {
 }
 $current = basename($_SERVER['PHP_SELF']);
 include_once '../koneksi.php';
+include_once '../security.php';
 $alumni = mysqli_fetch_assoc(mysqli_query($koneksi,
     "SELECT * FROM alumni WHERE user_id={$_SESSION['id_login']}"));
 $alumni_id = $alumni['id'] ?? 0;

@@ -6,6 +6,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['level'] !== 'peserta') {
 }
 $current = basename($_SERVER['PHP_SELF']);
 include_once '../koneksi.php'; // koneksi.php ada di login/
+include_once '../security.php';
 ?>
 <!DOCTYPE html>
 <html lang="id">
