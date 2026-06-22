@@ -137,3 +137,72 @@
 .table-responsive { border-radius: 0 0 12px 12px; }
 .table td, .table th { white-space: nowrap; }
 .table td.wrap, .table th.wrap { white-space: normal; }
+
+/* ===== BACKGROUND SLIDESHOW BALAI ===== */
+/*
+ * Taruh 3 foto balai di:
+ *   login/assets/images/balai1.jpg
+ *   login/assets/images/balai2.jpg
+ *   login/assets/images/balai3.jpg
+ * Foto akan bergantian otomatis setiap 5 detik
+ */
+
+/* Background slideshow fixed */
+#bg-slideshow {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    overflow: hidden;
+}
+#bg-slideshow .bg-slide {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out;
+}
+#bg-slideshow .bg-slide.aktif {
+    opacity: 1;
+}
+#bg-slideshow .bg-slide:nth-child(1) {
+    background-image: url('../assets/images/balai1.jpg');
+}
+#bg-slideshow .bg-slide:nth-child(2) {
+    background-image: url('../assets/images/balai2.jpg');
+}
+#bg-slideshow .bg-slide:nth-child(3) {
+    background-image: url('../assets/images/balai3.jpg');
+}
+
+/* Overlay putih di atas foto supaya konten terbaca */
+#bg-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: rgba(240, 245, 252, 0.82);
+}
+
+/* Body transparan supaya background terlihat */
+body {
+    background: transparent;
+}
+
+/* Sidebar dengan efek glass */
+#sidebar {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* Card dengan efek transparan subtle */
+.card {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(4px);
+}
+
+/* Topbar dengan efek transparan */
+#topbar {
+    background: rgba(255, 255, 255, 0.92) !important;
+    backdrop-filter: blur(8px);
+}
