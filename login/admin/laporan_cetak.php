@@ -8,9 +8,21 @@ include '../koneksi.php';
 $kepala = [];
 $cek_tabel = mysqli_query($koneksi, "SHOW TABLES LIKE 'kepala'");
 if ($cek_tabel && mysqli_num_rows($cek_tabel) > 0) {
-    $q_kepala = mysqli_query($koneksi,
-        "SELECT k.*, u.name FROM kepala k JOIN users u ON k.user_id=u.id WHERE k.is_aktif=1 LIMIT 1");
-    if ($q_kepala) $kepala = mysqli_fetch_assoc($q_kepala) ?: [];
+    // Ambil kepala aktif (nama_lengkap langsung dari tabel kepala)
+$q_kepala = mysqli_query($koneksi,
+    "SELECT * FROM kepala WHERE is_aktif=1 ORDER BY mulai_jabatan DESC LIMIT 1");
+$kepala = ($q_kepala && mysqli_num_rows($q_kepala) > 0)
+    ? mysqli_fetch_assoc($q_kepala)
+    : [];
+
+// Fallback: jika tidak ada yang aktif, ambil kepala terakhir
+if (empty($kepala) || empty($kepala['nama_lengkap'])) {
+    $q_kepala2 = mysqli_query($koneksi,
+        "SELECT * FROM kepala ORDER BY id DESC LIMIT 1");
+    if ($q_kepala2 && mysqli_num_rows($q_kepala2) > 0) {
+        $kepala = mysqli_fetch_assoc($q_kepala2);
+    }
+}
 }
 
 
@@ -601,9 +613,10 @@ while ($r = mysqli_fetch_assoc($data)) $rows[] = $r;
       }
       // Cek apakah sudah disetujui
       $pl = mysqli_fetch_assoc(mysqli_query($koneksi,
-          "SELECT pl.*, k.nama_lengkap as nama_kepala, k.nip
+          "SELECT pl.*, uk.name as nama_kepala, k.nip
            FROM persetujuan_laporan pl
            LEFT JOIN kepala k ON pl.kepala_id=k.id
+           LEFT JOIN users uk ON k.user_id=uk.id
            WHERE pl.kode_laporan='$kode_esc'"));
   } else {
       $pl = null;
@@ -638,7 +651,7 @@ while ($r = mysqli_fetch_assoc($data)) $rows[] = $r;
         <div style="font-size:7pt;color:#aaa;margin-top:4px">Scan untuk persetujuan kepala</div>
       <?php endif; ?>
       <div style="width:220px;border-bottom:1px solid #000;margin:10px auto 4px"></div>
-      <div style="font-size:10pt;font-weight:bold;text-transform:uppercase"><?= htmlspecialchars($kepala['nama_lengkap'] ?? '______________________________') ?></div>
+      <div style="font-size:10pt;font-weight:bold;text-transform:uppercase"><?= htmlspecialchars(!empty($kepala['nama_lengkap']) ? $kepala['nama_lengkap'] : '______________________________') ?></div>
       <div style="font-size:9pt;color:#444">NIP. <?= htmlspecialchars($kepala['nip'] ?? '______________________') ?></div>
       <?php if (!empty($kepala['pangkat']) && !empty($kepala['golongan'])): ?>
         <div style="font-size:9pt;color:#444"><?= htmlspecialchars($kepala['pangkat']) ?> / <?= htmlspecialchars($kepala['golongan']) ?></div>

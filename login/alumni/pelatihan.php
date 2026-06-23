@@ -1,249 +1,187 @@
 <?php
-// Proses POST harus di paling atas sebelum ada output HTML
-if (session_status() === PHP_SESSION_NONE) session_start();
-if (!isset($_SESSION['logged_in']) || $_SESSION['level'] !== 'instruktur') {
-    header("location: ../login.php"); exit;
-}
-include '../koneksi.php';
+$page_title = 'Pelatihan';
+include 'header.php';
 
-// Ambil instruktur_id
-$instruktur = mysqli_fetch_assoc(mysqli_query($koneksi,
-    "SELECT * FROM instruktur WHERE user_id={$_SESSION['id_login']}"));
-$instruktur_id = $instruktur['id'] ?? 0;
+$uid = $_SESSION['id_login'];
+$pesan = isset($_GET['pesan']) ? $_GET['pesan'] : '';
+$tab = isset($_GET['tab']) ? $_GET['tab'] : 'tersedia';
 
-// Proses simpan nilai
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $pp_id     = (int)$_POST['pp_id'];
-    $nilai     = mysqli_real_escape_string($koneksi, $_POST['nilai']);
-    $kehadiran = mysqli_real_escape_string($koneksi, $_POST['status_kehadiran']);
-    $status    = mysqli_real_escape_string($koneksi, $_POST['status_lulus']);
+// Proses daftar pelatihan
+if (isset($_GET['daftar'])) {
+    $pid = (int)$_GET['daftar'];
+    $pel = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT * FROM pelatihan WHERE id=$pid AND status='aktif'"));
+    $jml = mysqli_fetch_row(mysqli_query($koneksi, "SELECT COUNT(*) FROM peserta_pelatihan WHERE pelatihan_id=$pid AND status_verifikasi!='ditolak'"))[0];
+    $cek = mysqli_fetch_row(mysqli_query($koneksi, "SELECT id FROM peserta_pelatihan WHERE user_id=$uid AND pelatihan_id=$pid"));
 
-    // Pastikan peserta ini milik pelatihan instruktur yang login
-    $cek = mysqli_fetch_row(mysqli_query($koneksi, "
-        SELECT pp.id FROM peserta_pelatihan pp
-        JOIN pelatihan p ON pp.pelatihan_id=p.id
-        WHERE pp.id=$pp_id AND p.instruktur_id=$instruktur_id
-    "));
-
-    if ($cek) {
-        mysqli_query($koneksi, "UPDATE peserta_pelatihan SET
-            nilai='$nilai', status_kehadiran='$kehadiran', status_lulus='$status'
-            WHERE id=$pp_id");
-
-        // =====================================================
-        // KIRIM EMAIL NOTIFIKASI NILAI KE PESERTA/ALUMNI
-        // =====================================================
-        if ($status !== 'belum_dinilai') {
-            include_once '../email_helper.php';
-            $user_data = mysqli_fetch_assoc(mysqli_query($koneksi,
-                "SELECT u.email, u.name, p.nama_pelatihan
-                 FROM peserta_pelatihan pp
-                 JOIN users u ON pp.user_id=u.id
-                 JOIN pelatihan p ON pp.pelatihan_id=p.id
-                 WHERE pp.id=$pp_id"));
-            if ($user_data) {
-                notifNilaiLulus(
-                    $user_data['email'],
-                    $user_data['name'],
-                    $user_data['nama_pelatihan'],
-                    (float)$nilai,
-                    $status
-                );
-            }
-        }
-        // =====================================================
-
-        // =====================================================
-        // OTOMATIS JADIKAN ALUMNI JIKA STATUS LULUS
-        // =====================================================
-        if ($status === 'lulus') {
-            $pp = mysqli_fetch_assoc(mysqli_query($koneksi,
-                "SELECT pp.user_id, pp.pelatihan_id, p.tanggal_selesai, p.instruktur_id
-                 FROM peserta_pelatihan pp
-                 JOIN pelatihan p ON pp.pelatihan_id=p.id
-                 WHERE pp.id=$pp_id"));
-
-            if ($pp) {
-                $user_id       = $pp['user_id'];
-                $pel_id        = $pp['pelatihan_id'];
-                $tgl_lulus     = $pp['tanggal_selesai'];
-                $instr_id      = $pp['instruktur_id'];
-
-                // Buat atau ambil alumni_id
-                $cek_alumni = mysqli_fetch_row(mysqli_query($koneksi,
-                    "SELECT id FROM alumni WHERE user_id=$user_id"));
-                if (!$cek_alumni) {
-                    mysqli_query($koneksi, "INSERT INTO alumni (user_id, tanggal_lulus)
-                        VALUES ($user_id, '$tgl_lulus')");
-                    $alumni_id = mysqli_insert_id($koneksi);
-                    mysqli_query($koneksi, "UPDATE users SET role='alumni' WHERE id=$user_id");
-                } else {
-                    $alumni_id = $cek_alumni[0];
-                }
-
-                // Buat RKTL jika belum ada
-                $tgl_pendampingan = date('Y-m-d', strtotime($tgl_lulus . ' +3 months'));
-                $cek_rktl = mysqli_fetch_row(mysqli_query($koneksi,
-                    "SELECT id FROM rktl WHERE alumni_id=$alumni_id AND pelatihan_id=$pel_id"));
-                if (!$cek_rktl) {
-                    mysqli_query($koneksi, "INSERT INTO rktl
-                        (alumni_id, pelatihan_id, instruktur_id, rencana, tgl_pendampingan, status)
-                        VALUES ($alumni_id, $pel_id, $instr_id, 'Belum diisi', '$tgl_pendampingan', 'belum_mulai')");
-                }
-
-                // Buat tracer study jika belum ada
-                $cek_tracer = mysqli_fetch_row(mysqli_query($koneksi,
-                    "SELECT id FROM tracer_study WHERE alumni_id=$alumni_id"));
-                if (!$cek_tracer) {
-                    mysqli_query($koneksi, "INSERT INTO tracer_study (alumni_id, status_pengisian)
-                        VALUES ($alumni_id, 'belum_diisi')");
-                }
-            }
-        }
-        // =====================================================
-
-        $pesan_redirect = urlencode('Nilai berhasil disimpan.' . ($status === 'lulus' ? ' Peserta otomatis menjadi Alumni.' : ''));
-        header("location: peserta.php?pelatihan_id={$_POST['pelatihan_id']}&pesan=$pesan_redirect");
-        exit;
+    if (!$pel) {
+        $pesan = 'Pelatihan tidak ditemukan atau sudah tidak aktif.';
+    } elseif ($cek) {
+        $pesan = 'Anda sudah terdaftar di pelatihan ini.';
+    } elseif ($jml >= $pel['kuota']) {
+        $pesan = 'Maaf, kuota pelatihan ini sudah penuh.';
+    } else {
+        mysqli_query($koneksi, "INSERT INTO peserta_pelatihan (user_id, pelatihan_id, tanggal_daftar, status_verifikasi) VALUES ($uid, $pid, NOW(), 'menunggu')");
+        $pesan = 'Berhasil mendaftar! Menunggu verifikasi admin.';
     }
+    header("location: pelatihan.php?tab=$tab&pesan=" . urlencode($pesan));
+    exit;
 }
-
-// Set page title untuk header
-$page_title = 'Kelola Peserta';
 ?>
-<?php include 'header.php'; ?>
 
-<?php $pesan = isset($_GET['pesan']) ? $_GET['pesan'] : ''; ?>
 <?php if ($pesan): ?>
-  <div class="alert alert-success alert-dismissible fade show"><?= htmlspecialchars($pesan) ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  <div class="alert alert-info alert-dismissible fade show">
+    <i class="bi bi-info-circle me-2"></i><?= htmlspecialchars($pesan) ?>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
 <?php endif; ?>
 
-<?php
-// Filter pelatihan
-$filter_pid = isset($_GET['pelatihan_id']) ? (int)$_GET['pelatihan_id'] : 0;
-$where = $filter_pid ? "AND pp.pelatihan_id=$filter_pid" : '';
+<!-- Tab navigasi -->
+<ul class="nav nav-tabs mb-0">
+  <li class="nav-item">
+    <a class="nav-link <?= $tab==='tersedia'?'active':'' ?>" href="pelatihan.php?tab=tersedia">
+      <i class="bi bi-journal-bookmark me-1"></i>Pelatihan Tersedia
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link <?= $tab==='saya'?'active':'' ?>" href="pelatihan.php?tab=saya">
+      <i class="bi bi-person-check me-1"></i>Pendaftaran Saya
+    </a>
+  </li>
+</ul>
 
-$data = mysqli_query($koneksi, "
-    SELECT pp.*, u.name as nama_peserta, u.email,
-        p.nama_pelatihan, p.id as pid
-    FROM peserta_pelatihan pp
-    JOIN users u ON pp.user_id=u.id
-    JOIN pelatihan p ON pp.pelatihan_id=p.id
-    WHERE p.instruktur_id=$instruktur_id $where
-    ORDER BY p.tanggal_mulai DESC, u.name ASC
-");
+<div class="card" style="border-radius:0 0 12px 12px">
 
-$list_pel = mysqli_query($koneksi, "SELECT id, nama_pelatihan FROM pelatihan WHERE instruktur_id=$instruktur_id ORDER BY tanggal_mulai DESC");
-?>
-
-<div class="card">
-  <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-    <span>Daftar Peserta</span>
-    <form class="d-flex gap-2" method="GET">
-      <select name="pelatihan_id" class="form-select form-select-sm" style="min-width:220px">
-        <option value="">Semua Pelatihan Saya</option>
-        <?php while ($p = mysqli_fetch_assoc($list_pel)): ?>
-          <option value="<?= $p['id'] ?>" <?= $filter_pid==$p['id']?'selected':'' ?>><?= htmlspecialchars($p['nama_pelatihan']) ?></option>
-        <?php endwhile; ?>
-      </select>
-      <button class="btn btn-sm btn-outline-secondary">Filter</button>
-    </form>
-  </div>
+<?php if ($tab === 'tersedia'): ?>
+  <!-- Daftar pelatihan aktif yang bisa didaftar alumni -->
+  <?php
+  $data = mysqli_query($koneksi, "
+    SELECT p.*, ui.name as nama_instruktur,
+      (SELECT COUNT(*) FROM peserta_pelatihan WHERE pelatihan_id=p.id AND status_verifikasi!='ditolak') as jml_peserta,
+      (SELECT id FROM peserta_pelatihan WHERE pelatihan_id=p.id AND user_id=$uid LIMIT 1) as sudah_daftar
+    FROM pelatihan p
+    JOIN instruktur i ON p.instruktur_id=i.id
+    JOIN users ui ON i.user_id=ui.id
+    WHERE p.status='aktif'
+    ORDER BY p.tanggal_mulai ASC
+  ");
+  ?>
   <div class="table-responsive">
     <table class="table table-hover mb-0">
-      <thead><tr><th>#</th><th>Nama Peserta</th><th>Pelatihan</th><th>Kehadiran</th><th>Nilai</th><th>Status</th><th>Aksi</th></tr></thead>
+      <thead>
+        <tr><th>#</th><th>Nama Pelatihan</th><th>Instruktur</th><th>Tanggal</th><th>Lokasi</th><th>Kuota</th><th>Aksi</th></tr>
+      </thead>
       <tbody>
       <?php $no=1; while ($row = mysqli_fetch_assoc($data)): ?>
         <tr>
           <td><?= $no++ ?></td>
-          <td><?= htmlspecialchars($row['nama_peserta']) ?><br><small class="text-muted"><?= htmlspecialchars($row['email']) ?></small></td>
-          <td><?= htmlspecialchars($row['nama_pelatihan']) ?></td>
           <td>
-            <?php $kh=['hadir'=>'success','tidak_hadir'=>'danger','izin'=>'warning']; ?>
-            <span class="badge bg-<?= $kh[$row['status_kehadiran']] ?? 'secondary' ?>"><?= str_replace('_',' ',$row['status_kehadiran']) ?></span>
+            <strong><?= htmlspecialchars($row['nama_pelatihan']) ?></strong><br>
+            <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size:10px"><?= htmlspecialchars($row['jenis']??'Umum') ?></span>
           </td>
-          <td><?= $row['nilai'] ?? '-' ?></td>
+          <td><small><?= htmlspecialchars($row['nama_instruktur']) ?></small></td>
           <td>
-            <?php $sl=['lulus'=>'success','tidak_lulus'=>'danger','belum_dinilai'=>'secondary']; ?>
-            <span class="badge bg-<?= $sl[$row['status_lulus']] ?? 'secondary' ?>"><?= str_replace('_',' ',$row['status_lulus']) ?></span>
+            <small><?= date('d M Y', strtotime($row['tanggal_mulai'])) ?></small><br>
+            <small class="text-muted">s/d <?= date('d M Y', strtotime($row['tanggal_selesai'])) ?></small>
+          </td>
+          <td><small><?= htmlspecialchars($row['lokasi']??'-') ?></small></td>
+          <td>
+            <?php $sisa = $row['kuota'] - $row['jml_peserta']; ?>
+            <span class="badge <?= $sisa>0?'bg-success':'bg-danger' ?> bg-opacity-10 <?= $sisa>0?'text-success':'text-danger' ?>">
+              <?= $sisa>0 ? "$sisa tempat" : 'Penuh' ?>
+            </span>
           </td>
           <td>
-            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalNilai"
-              data-ppid="<?= $row['id'] ?>"
-              data-pid="<?= $row['pid'] ?>"
-              data-nama="<?= htmlspecialchars($row['nama_peserta']) ?>"
-              data-nilai="<?= $row['nilai'] ?>"
-              data-kehadiran="<?= $row['status_kehadiran'] ?>"
-              data-status="<?= $row['status_lulus'] ?>">
-              <i class="bi bi-pencil-square"></i> Nilai
-            </button>
+            <?php if ($row['sudah_daftar']): ?>
+              <span class="badge bg-secondary">Sudah Daftar</span>
+            <?php elseif ($sisa > 0): ?>
+              <a href="pelatihan.php?daftar=<?= $row['id'] ?>&tab=tersedia"
+                 class="btn btn-sm btn-primary"
+                 onclick="return confirm('Daftar pelatihan <?= htmlspecialchars($row['nama_pelatihan']) ?>?')">
+                <i class="bi bi-plus-lg me-1"></i>Daftar
+              </a>
+            <?php else: ?>
+              <button class="btn btn-sm btn-outline-secondary" disabled>Penuh</button>
+            <?php endif; ?>
           </td>
         </tr>
       <?php endwhile; ?>
       <?php if (mysqli_num_rows($data) === 0): ?>
-        <tr><td colspan="7" class="text-center text-muted py-4">Tidak ada peserta</td></tr>
+        <tr><td colspan="7">
+          <div class="empty-state"><i class="bi bi-calendar-x"></i><p>Belum ada pelatihan aktif saat ini</p></div>
+        </td></tr>
       <?php endif; ?>
       </tbody>
     </table>
   </div>
-</div>
 
-<!-- Modal Input Nilai -->
-<div class="modal fade" id="modalNilai" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h6 class="modal-title fw-semibold">Input Nilai Peserta</h6>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <form method="POST">
-        <div class="modal-body">
-          <input type="hidden" name="pp_id" id="m_ppid">
-          <input type="hidden" name="pelatihan_id" id="m_pid">
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Peserta</label>
-            <input type="text" id="m_nama" class="form-control" readonly>
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Status Kehadiran</label>
-            <select name="status_kehadiran" id="m_kehadiran" class="form-select">
-              <option value="hadir">Hadir</option>
-              <option value="tidak_hadir">Tidak Hadir</option>
-              <option value="izin">Izin</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Nilai (0-100)</label>
-            <input type="number" name="nilai" id="m_nilai" class="form-control" min="0" max="100" step="0.01">
-          </div>
-          <div class="mb-1">
-            <label class="form-label fw-semibold">Status Kelulusan</label>
-            <select name="status_lulus" id="m_status" class="form-select">
-              <option value="belum_dinilai">Belum Dinilai</option>
-              <option value="lulus">Lulus</option>
-              <option value="tidak_lulus">Tidak Lulus</option>
-            </select>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-primary">Simpan Nilai</button>
-        </div>
-      </form>
-    </div>
+<?php else: ?>
+  <!-- Riwayat pendaftaran saya -->
+  <?php
+  $data = mysqli_query($koneksi, "
+    SELECT pp.*, p.nama_pelatihan, p.jenis, p.tanggal_mulai, p.tanggal_selesai, p.lokasi,
+      ui.name as nama_instruktur, uv.name as nama_verifikator
+    FROM peserta_pelatihan pp
+    JOIN pelatihan p ON pp.pelatihan_id=p.id
+    JOIN instruktur i ON p.instruktur_id=i.id
+    JOIN users ui ON i.user_id=ui.id
+    LEFT JOIN users uv ON pp.diverifikasi_oleh=uv.id
+    WHERE pp.user_id=$uid
+    ORDER BY pp.tanggal_daftar DESC
+  ");
+  ?>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr><th>#</th><th>Nama Pelatihan</th><th>Instruktur</th><th>Tgl Daftar</th><th>Nilai</th><th>Status Verifikasi</th><th>Status Lulus</th></tr>
+      </thead>
+      <tbody>
+      <?php $no=1; while ($row = mysqli_fetch_assoc($data)): ?>
+        <tr>
+          <td><?= $no++ ?></td>
+          <td>
+            <strong><?= htmlspecialchars($row['nama_pelatihan']) ?></strong><br>
+            <small class="text-muted"><?= date('d M Y', strtotime($row['tanggal_mulai'])) ?></small>
+          </td>
+          <td><small><?= htmlspecialchars($row['nama_instruktur']) ?></small></td>
+          <td><small><?= date('d M Y', strtotime($row['tanggal_daftar'])) ?></small></td>
+          <td>
+            <?php if ($row['nilai'] !== null): ?>
+              <strong><?= $row['nilai'] ?></strong>
+            <?php else: ?>
+              <small class="text-muted">-</small>
+            <?php endif; ?>
+          </td>
+          <td>
+            <?php
+            $sv = $row['status_verifikasi'];
+            $svMap = ['menunggu'=>['warning','Menunggu'],'diterima'=>['success','Diterima'],'ditolak'=>['danger','Ditolak']];
+            $svd = $svMap[$sv] ?? ['secondary','?'];
+            ?>
+            <span class="badge bg-<?= $svd[0] ?> bg-opacity-15 text-<?= $svd[0] ?>"><?= $svd[1] ?></span>
+            <?php if ($sv==='ditolak' && $row['alasan_tolak']): ?>
+              <br><small class="text-danger"><?= htmlspecialchars($row['alasan_tolak']) ?></small>
+            <?php endif; ?>
+          </td>
+          <td>
+            <?php
+            $sl = $row['status_lulus'];
+            $slMap = ['belum_dinilai'=>['secondary','Belum Dinilai'],'lulus'=>['success','Lulus'],'tidak_lulus'=>['danger','Tidak Lulus']];
+            $sld = $slMap[$sl] ?? ['secondary','?'];
+            ?>
+            <span class="badge bg-<?= $sld[0] ?> bg-opacity-15 text-<?= $sld[0] ?>"><?= $sld[1] ?></span>
+          </td>
+        </tr>
+      <?php endwhile; ?>
+      <?php if (mysqli_num_rows($data) === 0): ?>
+        <tr><td colspan="7">
+          <div class="empty-state"><i class="bi bi-inbox"></i><p>Belum ada riwayat pendaftaran</p></div>
+        </td></tr>
+      <?php endif; ?>
+      </tbody>
+    </table>
   </div>
-</div>
+<?php endif; ?>
 
-<script>
-document.getElementById('modalNilai').addEventListener('show.bs.modal', function(e) {
-  var btn = e.relatedTarget;
-  document.getElementById('m_ppid').value      = btn.dataset.ppid;
-  document.getElementById('m_pid').value       = btn.dataset.pid;
-  document.getElementById('m_nama').value      = btn.dataset.nama;
-  document.getElementById('m_nilai').value     = btn.dataset.nilai;
-  document.getElementById('m_kehadiran').value = btn.dataset.kehadiran;
-  document.getElementById('m_status').value    = btn.dataset.status;
-});
-</script>
+</div>
 
 <?php include 'footer.php'; ?>
