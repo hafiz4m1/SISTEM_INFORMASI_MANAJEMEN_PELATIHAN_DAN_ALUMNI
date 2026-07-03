@@ -58,7 +58,7 @@ include 'logincontroller.php';
       <img src="../assets/images/LOGO-KEMENTRANS-Bulat.png" alt="Kementerian Transmigrasi">
       <img src="../assets/images/Logo-kementrian.png" alt="BPPMDDTT" style="height:55px">
     </div>
-    <h5>Sistem Informasi Manajemen Pelatihan &amp; Alumni</h5>
+    <h5>Aplikasi Monitoring dan Manajemen Data Alumni, Pelatih</h5>
     <small>BPPMDDTT Banjarmasin</small>
   </div>
   <div class="login-body">

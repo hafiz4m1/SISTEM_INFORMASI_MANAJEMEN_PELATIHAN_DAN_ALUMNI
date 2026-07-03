@@ -5,31 +5,11 @@ include 'header.php';
 $pesan  = isset($_GET['pesan']) ? $_GET['pesan'] : '';
 $errors = [];
 
-// Aktifkan kepala baru
+// Aktifkan kepala baru (nonaktifkan yang lama otomatis via trigger)
 if (isset($_GET['aktifkan'])) {
     $id = (int)$_GET['aktifkan'];
-
-    // Step 1: Ambil user_id kepala yang akan diaktifkan
-    $row_kepala = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT user_id FROM kepala WHERE id=$id"));
-    $uid_kepala = $row_kepala ? (int)$row_kepala['user_id'] : 0;
-
-    // Step 2: Nonaktifkan SEMUA kepala yang sedang aktif
-    mysqli_query($koneksi, "UPDATE kepala SET is_aktif=0, selesai_jabatan=CURDATE() WHERE is_aktif=1");
-
-    // Step 3: Aktifkan kepala yang dipilih
-    $r1 = mysqli_query($koneksi, "UPDATE kepala SET is_aktif=1, mulai_jabatan=CURDATE(), selesai_jabatan=NULL WHERE id=$id");
-
-    // Step 4: Aktifkan user terkait supaya bisa login
-    if ($uid_kepala > 0) {
-        mysqli_query($koneksi, "UPDATE users SET is_active=1, role='kepala' WHERE id=$uid_kepala");
-    }
-
-    if ($r1) {
-        header("location: kepala.php?pesan=Kepala berhasil diaktifkan. Data laporan akan otomatis menggunakan kepala baru.");
-    } else {
-        header("location: kepala.php?pesan=Gagal mengaktifkan kepala: " . urlencode(mysqli_error($koneksi)));
-    }
-    exit;
+    mysqli_query($koneksi, "UPDATE kepala SET is_aktif=1, mulai_jabatan=CURDATE() WHERE id=$id");
+    header("location: kepala.php?pesan=Kepala berhasil diaktifkan. Data laporan akan otomatis menggunakan kepala baru."); exit;
 }
 
 // Nonaktifkan kepala

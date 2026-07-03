@@ -78,7 +78,7 @@ $top_pelatihan = mysqli_query($koneksi, "
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistem Informasi Manajemen Pelatihan & Alumni | BPPMDDTT Banjarmasin</title>
+  <title>Aplikasi Monitoring dan Manajemen Data Alumni, Pelatih | BPPMDDTT Banjarmasin</title>
   <meta name="description" content="Platform digital pengelolaan pelatihan, peserta, dan alumni BPPMDDTT Banjarmasin">
   <link rel="shortcut icon" href="login/assets/images/favicon.ico">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -86,7 +86,7 @@ $top_pelatihan = mysqli_query($koneksi, "
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     :root { --primary:#1a4c8e; --primary-dark:#0d3060; }
-    body { font-size:14px; color:#1a2942; scroll-behavior:smooth; background:transparent !important; }
+    body { font-size:14px; color:#1a2942; scroll-behavior:smooth; }
 
     /* Navbar */
     .navbar { background:var(--primary); padding:12px 0; position:sticky; top:0; z-index:100;
@@ -165,40 +165,19 @@ $top_pelatihan = mysqli_query($koneksi, "
     footer .footer-bottom { border-top:1px solid rgba(255,255,255,.1); margin-top:28px; padding-top:20px;
       font-size:12px; text-align:center; }
 
-    /* Semua section semi transparan supaya foto background terlihat */
-    section { position: relative; }
-    .bg-white { background: rgba(255,255,255,0.70) !important; }
-    .py-5 { position: relative; }
-
     /* Scroll reveal */
     .reveal { opacity:0; transform:translateY(20px); transition:all .6s ease; }
     .reveal.visible { opacity:1; transform:none; }
-
-    /* Background Slideshow */
-    #bg-slideshow { position:fixed;inset:0;z-index:-2;overflow:hidden; }
-    #bg-slideshow .bg-slide { position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity 1.8s ease-in-out; }
-    #bg-slideshow .bg-slide.aktif { opacity:1; }
-    #bg-slideshow .bg-slide:nth-child(1) { background-image:url('assets/images/balai1.jpg'); }
-    #bg-slideshow .bg-slide:nth-child(2) { background-image:url('assets/images/balai2.jpg'); }
-    #bg-slideshow .bg-slide:nth-child(3) { background-image:url('assets/images/balai3.jpg'); }
-    #bg-overlay { position:fixed;inset:0;z-index:-1;background:rgba(255,255,255,0.55); }
   </style>
 </head>
 <body>
-<!-- Background Slideshow -->
-<div id="bg-slideshow">
-  <div class="bg-slide aktif"></div>
-  <div class="bg-slide"></div>
-  <div class="bg-slide"></div>
-</div>
-<div id="bg-overlay"></div>
 
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg">
   <div class="container">
     <a class="navbar-brand d-flex align-items-center" href="index.php">
       <img src="assets/images/LOGO-KEMENTRANS-Bulat.png" alt="Kementerian Transmigrasi" class="navbar-logo">
-      <span>SisInfo Pelatihan &amp; Alumni <span style="opacity:.6">· BPPMDDTT</span></span>
+      <span>Monitoring Alumni &amp; Pelatih <span style="opacity:.6">· BPPMDDTT</span></span>
     </a>
     <div class="d-flex gap-2 ms-auto">
       <a href="login/login.php"    class="btn btn-outline-light nav-btn">Login</a>
@@ -228,19 +207,15 @@ $top_pelatihan = mysqli_query($koneksi, "
           </a>
         </div>
       </div>
-      <div class="col-lg-5 d-none d-lg-block">
-        <div style="border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.35);border:3px solid rgba(255,255,255,.25)">
-          <img src="assets/images/balai1.jpg" alt="BPPMDDTT Banjarmasin"
-               style="width:100%;height:300px;object-fit:cover;display:block"
-               onerror="this.parentElement.innerHTML='<div style=\'padding:60px;text-align:center\'><i class=\'bi bi-building-fill-check\' style=\'font-size:100px;opacity:.15;color:#fff\'></i></div>'">
-        </div>
+      <div class="col-lg-5 d-none d-lg-block text-end">
+        <i class="bi bi-building-fill-check" style="font-size:140px;opacity:.1;color:#fff"></i>
       </div>
     </div>
   </div>
 </section>
 
 <!-- Statistik -->
-<section class="py-4 border-bottom" style="background:rgba(255,255,255,0.70)">
+<section class="py-4 bg-white border-bottom">
   <div class="container">
     <div class="row g-0 divide-x">
       <?php
@@ -265,7 +240,7 @@ $top_pelatihan = mysqli_query($koneksi, "
 </section>
 
 <!-- Tentang -->
-<section class="py-5" style="background:rgba(244,246,251,0.65)">
+<section class="py-5" style="background:#f4f6fb">
   <div class="container reveal">
     <div class="row align-items-center g-5">
       <div class="col-lg-6">
@@ -306,7 +281,7 @@ $top_pelatihan = mysqli_query($koneksi, "
 </section>
 
 <!-- Pelatihan Tersedia -->
-<section class="py-5" style="background:rgba(255,255,255,0.70)">
+<section class="py-5 bg-white">
   <div class="container reveal">
     <div class="d-flex justify-content-between align-items-end mb-4">
       <div>
@@ -361,7 +336,7 @@ $top_pelatihan = mysqli_query($koneksi, "
 </section>
 
 <!-- Grafik Sebaran -->
-<section class="py-5" style="background:rgba(244,246,251,0.65)">
+<section class="py-5" style="background:#f4f6fb">
   <div class="container reveal">
     <div class="section-badge">Statistik</div>
     <h2 class="section-title">Sebaran Alumni</h2>
@@ -388,7 +363,7 @@ $top_pelatihan = mysqli_query($koneksi, "
 </section>
 
 <!-- Top 10 Pelatihan -->
-<section class="py-5" style="background:rgba(255,255,255,0.70)">
+<section class="py-5 bg-white">
   <div class="container reveal">
     <div class="section-badge">Peringkat</div>
     <h2 class="section-title">Top 10 Pelatihan Paling Berpengaruh</h2>
@@ -428,82 +403,8 @@ $top_pelatihan = mysqli_query($koneksi, "
   </div>
 </section>
 
-<!-- Lokasi Balai -->
-<section class="py-5" style="background:rgba(255,255,255,0.70)">
-  <div class="container reveal">
-    <div class="section-badge">Lokasi</div>
-    <h2 class="section-title">Lokasi BPPMDDTT Banjarmasin</h2>
-    <p class="section-sub mb-4">Balai Pelatihan dan Pemberdayaan Masyarakat Desa, Daerah Tertinggal dan Transmigrasi Banjarmasin</p>
-    <div class="row g-4 align-items-stretch">
-      <!-- Maps embed -->
-      <div class="col-lg-8">
-        <div style="border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.10);height:380px">
-          <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d491.8!2d114.6155826!3d-3.2420815!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2de43ca0d48f0a17%3A0x242ee71eb3cc1384!2sBalai%20Pelatihan%20dan%20Pemberdayaan%20Masyarakat%20Transmigrasi%20(BPPMT)%20Banjarmasin!5e0!3m2!1sid!2sid!4v1750000000000!5m2!1sid!2sid"
-            width="100%" height="380" style="border:0;display:block"
-            allowfullscreen="" loading="lazy"
-            referrerpolicy="no-referrer-when-downgrade">
-          </iframe>
-        </div>
-      </div>
-      <!-- Info kontak -->
-      <div class="col-lg-4">
-        <div class="p-4 h-100 rounded-3" style="background:rgba(255,255,255,0.90);box-shadow:0 4px 20px rgba(0,0,0,.08)">
-          <h6 class="fw-bold mb-4" style="color:#1a2942;font-size:15px">
-            <i class="bi bi-geo-alt-fill text-primary me-2"></i>Informasi Lokasi
-          </h6>
-          <div class="d-flex flex-column gap-3" style="font-size:13px">
-            <div class="d-flex gap-3">
-              <div style="width:36px;height:36px;background:#e8f0fe;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                <i class="bi bi-building text-primary"></i>
-              </div>
-              <div>
-                <div class="fw-semibold mb-1">BPPMT Banjarmasin</div>
-                <div class="text-muted">Balai Pelatihan dan Pemberdayaan Masyarakat Transmigrasi Banjarmasin</div>
-              </div>
-            </div>
-            <div class="d-flex gap-3">
-              <div style="width:36px;height:36px;background:#e8f5e9;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                <i class="bi bi-geo-alt-fill text-success"></i>
-              </div>
-              <div>
-                <div class="fw-semibold mb-1">Alamat</div>
-                <div class="text-muted">Handil Bakti, Kec. Alalak, Kabupaten Barito Kuala, Kalimantan Selatan 70581</div>
-              </div>
-            </div>
-            <div class="d-flex gap-3">
-              <div style="width:36px;height:36px;background:#fff3e0;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                <i class="bi bi-globe text-warning"></i>
-              </div>
-              <div>
-                <div class="fw-semibold mb-1">Website Resmi</div>
-                <a href="https://bppmtbjm.my.canva.site/" target="_blank" style="color:#1a4c8e">bppmtbjm.my.canva.site</a>
-              </div>
-            </div>
-            <div class="d-flex gap-3">
-              <div style="width:36px;height:36px;background:#f3e8ff;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                <i class="bi bi-building-fill text-purple" style="color:#7c3aed"></i>
-              </div>
-              <div>
-                <div class="fw-semibold mb-1">Kementerian</div>
-                <div class="text-muted">Kementerian Desa, PDT, dan Transmigrasi RI</div>
-              </div>
-            </div>
-          </div>
-          <div class="mt-4">
-            <a href="https://maps.app.goo.gl/oGXFojFcdyHvjeV89" target="_blank"
-               class="btn btn-primary w-100">
-              <i class="bi bi-map-fill me-2"></i>Buka di Google Maps
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- CTA -->
-<section class="py-5" style="background:rgba(244,246,251,0.65)">
+<section class="py-5" style="background:#f4f6fb">
   <div class="container reveal">
     <div class="cta-section">
       <h3>Bergabung Sekarang</h3>
@@ -525,7 +426,7 @@ $top_pelatihan = mysqli_query($koneksi, "
   <div class="container">
     <div class="row g-4">
       <div class="col-md-5">
-        <div class="footer-brand">Sistem Informasi Pelatihan &amp; Alumni</div>
+        <div class="footer-brand">Aplikasi Monitoring dan Manajemen Data Alumni, Pelatih</div>
         <p style="font-size:13px;margin-bottom:12px">BPPMDDTT Banjarmasin · Kementerian Desa, Pembangunan Daerah Tertinggal, dan Transmigrasi</p>
         <a href="https://bppmddtt-banjarmasin.kemendesa.go.id/" target="_blank" style="font-size:12px">
           <i class="bi bi-globe me-1"></i>bppmddtt-banjarmasin.kemendesa.go.id
@@ -584,19 +485,6 @@ const observer = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
 }, { threshold: 0.1 });
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-// Background Slideshow
-(function(){
-  const slides = document.querySelectorAll('#bg-slideshow .bg-slide');
-  let idx = 0;
-  if (slides.length > 0) {
-    setInterval(function(){
-      slides[idx].classList.remove('aktif');
-      idx = (idx + 1) % slides.length;
-      slides[idx].classList.add('aktif');
-    }, 5000);
-  }
-})();
 </script>
 </body>
 </html>

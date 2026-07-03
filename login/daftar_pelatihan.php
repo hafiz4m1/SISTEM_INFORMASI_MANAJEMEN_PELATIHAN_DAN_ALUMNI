@@ -86,7 +86,7 @@ if (isset($_SESSION['logged_in']) && $_SESSION['level'] === 'peserta') {
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg sticky-top">
   <div class="container">
-    <a class="navbar-brand" href="../index.php">SisInfo Pelatihan &amp; Alumni · BPPMDDTT</a>
+    <a class="navbar-brand" href="../index.php">AMMDA Pelatih &amp; Alumni · BPPMDDTT</a>
     <div class="d-flex gap-2 ms-auto">
       <?php if (isset($_SESSION['logged_in'])): ?>
         <?php

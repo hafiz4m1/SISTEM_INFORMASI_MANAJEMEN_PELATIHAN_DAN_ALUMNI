@@ -3,7 +3,7 @@
   <!-- Footer dalam dashboard -->
   <footer style="background:#fff;border-top:1px solid #f0f0f0;padding:12px 24px;
     display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#9ca3af">
-    <span>&copy; <?= date('Y') ?> BPPMDDTT Banjarmasin · Sistem Informasi Manajemen Pelatihan &amp; Alumni</span>
+    <span>&copy; <?= date('Y') ?> BPPMDDTT Banjarmasin · Aplikasi Monitoring dan Manajemen Data Alumni, Pelatih</span>
     <span>Dikembangkan oleh M. Hafiz Nuril Ikhsan</span>
   </footer>
 

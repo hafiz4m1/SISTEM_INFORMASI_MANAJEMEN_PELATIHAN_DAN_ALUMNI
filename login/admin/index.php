@@ -51,6 +51,37 @@ $q_rktl = mysqli_query($koneksi, "
 ");
 ?>
 
+<!-- Galeri Foto Balai -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div style="border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08);height:160px;position:relative">
+      <img src="../assets/images/balai1.jpg" alt="Gedung BPPMDDTT Banjarmasin"
+           style="width:100%;height:100%;object-fit:cover;display:block">
+      <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.6));padding:10px 12px;color:#fff;font-size:12px;font-weight:600">
+        Gedung BPPMDDTT Banjarmasin
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div style="border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08);height:160px;position:relative">
+      <img src="../assets/images/balai2.jpg" alt="Ruang Pelatihan"
+           style="width:100%;height:100%;object-fit:cover;display:block">
+      <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.6));padding:10px 12px;color:#fff;font-size:12px;font-weight:600">
+        Ruang Pelatihan
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div style="border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08);height:160px;position:relative">
+      <img src="../assets/images/balai3.jpg" alt="Aula BPPMDDTT"
+           style="width:100%;height:100%;object-fit:cover;display:block">
+      <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.6));padding:10px 12px;color:#fff;font-size:12px;font-weight:600">
+        Aula BPPMDDTT
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Alert verifikasi pending -->
 <?php if ($menunggu_verif > 0): ?>
 <div class="alert d-flex align-items-center gap-3 mb-3" style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px">

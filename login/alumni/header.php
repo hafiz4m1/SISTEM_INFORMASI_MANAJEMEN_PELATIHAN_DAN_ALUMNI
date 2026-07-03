@@ -16,9 +16,9 @@ $alumni_id = $alumni['id'] ?? 0;
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Sistem Informasi Manajemen Pelatihan dan Alumni BPPMDDTT Banjarmasin">
+  <meta name="description" content="Aplikasi Monitoring dan Manajemen Data Alumni, Pelatih BPPMDDTT Banjarmasin">
   <meta name="author" content="M. Hafiz Nuril Ikhsan">
-  <title><?= $page_title ?? 'Alumni' ?> | BPPMDDTT</title>
+  <title><?= $page_title ?? 'Alumni' ?> | Aplikasi Monitoring Alumni &amp; Pelatih</title>
   <link rel="shortcut icon" type="image/x-icon" href="../assets/images/favicon.ico">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">

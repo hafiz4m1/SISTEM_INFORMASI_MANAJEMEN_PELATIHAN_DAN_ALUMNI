@@ -5,23 +5,8 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
-  // ===== BACKGROUND SLIDESHOW =====
-  const bgWrap = document.createElement('div');
-  bgWrap.id = 'bg-slideshow';
-  bgWrap.innerHTML = '<div class="bg-slide aktif"></div><div class="bg-slide"></div><div class="bg-slide"></div>';
-  document.body.prepend(bgWrap);
-
-  const bgOverlay = document.createElement('div');
-  bgOverlay.id = 'bg-overlay';
-  document.body.prepend(bgOverlay);
-
-  const slides = bgWrap.querySelectorAll('.bg-slide');
-  let bgIdx = 0;
-  setInterval(function () {
-    slides[bgIdx].classList.remove('aktif');
-    bgIdx = (bgIdx + 1) % slides.length;
-    slides[bgIdx].classList.add('aktif');
-  }, 5000);
+  // Background slideshow dinonaktifkan - foto balai ditampilkan
+  // langsung sebagai galeri 3 kolom di halaman dashboard
 
   // ===== LOADING OVERLAY =====
   const loadingEl = document.createElement('div');

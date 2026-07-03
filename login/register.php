@@ -107,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="card register-card">
   <div class="register-header">
     <h5>Daftar Akun Baru</h5>
-    <small>Sistem Informasi Pelatihan &amp; Alumni · BPPMDDTT Banjarmasin</small>
+    <small>Aplikasi Monitoring dan Manajemen Data Alumni, Pelatih · BPPMDDTT Banjarmasin</small>
   </div>
   <div class="register-body">
 
