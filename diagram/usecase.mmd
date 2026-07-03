@@ -1,0 +1,127 @@
+usecaseDiagram
+    actor Admin
+    actor Alumni
+    actor Peserta
+    actor Instruktur
+    actor Kepala
+
+    Admin --> (Login)
+    Admin --> (Kelola akun pengguna)
+    Admin --> (Verifikasi pendaftaran)
+    Admin --> (Kelola data alumni)
+    Admin --> (Kelola pelatihan)
+    Admin --> (Kelola RKTL)
+    Admin --> (Kelola tracer study)
+    Admin --> (Kelola rekomendasi)
+    Admin --> (Cetak laporan)
+
+    Alumni --> (Login)
+    Alumni --> (Edit profil)
+    Alumni --> (Daftar pelatihan)
+    Alumni --> (Lihat riwayat pelatihan)
+    Alumni --> (Isi tracer study)
+    Alumni --> (Lihat sertifikat)
+    Alumni --> (Lihat rekomendasi)
+
+    Peserta --> (Login)graph LR
+    %% Konfigurasi Aktor
+    Admin["👤 Admin"]
+    Alumni["👤 Alumni"]
+    Peserta["👤 Peserta"]
+    Instruktur["👤 Instruktur"]
+    Kepala["👤 Kepala Balai"]
+
+    %% Batasan Sistem (System Boundary)
+    subgraph "Sistem Informasi Alumni"
+        UC_Login([Login])
+        UC_KelolaAkun([Kelola akun pengguna])
+        UC_VerifDaftar([Verifikasi pendaftaran])
+        UC_KelolaAlumni([Kelola data alumni])
+        UC_KelolaPelatihan([Kelola pelatihan])
+        UC_KelolaRKTL([Kelola RKTL])
+        UC_KelolaTracer([Kelola tracer study])
+        UC_KelolaRekomendasi([Kelola rekomendasi])
+        UC_CetakLapor([Cetak laporan])
+        UC_EditProfil([Edit profil])
+        UC_DaftarPelatihan([Daftar pelatihan])
+        UC_LihatRiwayat([Lihat riwayat pelatihan])
+        UC_IsiTracer([Isi tracer study])
+        UC_LihatSertif([Lihat sertifikat])
+        UC_LihatRekomendasi([Lihat rekomendasi])
+        UC_PantauPeserta([Pantau peserta])
+        UC_InputNilai([Input nilai])
+        UC_Pengesahan([Pengesahan])
+        UC_LihatLapor([Lihat laporan])
+    end
+
+    %% Hubungan Aktor Admin
+    Admin --> UC_Login
+    Admin --> UC_KelolaAkun
+    Admin --> UC_VerifDaftar
+    Admin --> UC_KelolaAlumni
+    Admin --> UC_KelolaPelatihan
+    Admin --> UC_KelolaRKTL
+    Admin --> UC_KelolaTracer
+    Admin --> UC_KelolaRekomendasi
+    Admin --> UC_CetakLapor
+
+    %% Hubungan Aktor Alumni
+    Alumni --> UC_Login
+    Alumni --> UC_EditProfil
+    Alumni --> UC_DaftarPelatihan
+    Alumni --> UC_LihatRiwayat
+    Alumni --> UC_IsiTracer
+    Alumni --> UC_LihatSertif
+    Alumni --> UC_LihatRekomendasi
+
+    %% Hubungan Aktor Peserta
+    Peserta --> UC_Login
+    Peserta --> UC_EditProfil
+    Peserta --> UC_DaftarPelatihan
+    Peserta --> UC_LihatSertif
+
+    %% Hubungan Aktor Instruktur
+    Instruktur --> UC_Login
+    Instruktur --> UC_KelolaPelatihan
+    Instruktur --> UC_PantauPeserta
+    Instruktur --> UC_InputNilai
+
+    %% Hubungan Aktor Kepala
+    Kepala --> UC_Login
+    Kepala --> UC_Pengesahan
+    Kepala --> UC_LihatLapor
+    Peserta --> (Edit profil)
+    Peserta --> (Daftar pelatihan)
+    Peserta --> (Lihat sertifikat)
+
+    Instruktur --> (Login)
+    Instruktur --> (Kelola pelatihan)
+    Instruktur --> (Pantau peserta)
+    Instruktur --> (Input nilai)
+
+    Kepala --> (Login)
+    Kepala --> (Pengesahan)
+    Kepala --> (Lihat laporan)
+
+    %% Group use cases inside boundary
+    rectangle "Sistem Informasi Alumni" {
+        (Login)
+        (Kelola akun pengguna)
+        (Verifikasi pendaftaran)
+        (Kelola data alumni)
+        (Kelola pelatihan)
+        (Kelola RKTL)
+        (Kelola tracer study)
+        (Kelola rekomendasi)
+        (Cetak laporan)
+        (Edit profil)
+        (Daftar pelatihan)
+        (Lihat riwayat pelatihan)
+        (Isi tracer study)
+        (Lihat sertifikat)
+        (Lihat rekomendasi)
+        (Pantau peserta)
+        (Input nilai)
+        (Pengesahan)
+        (Lihat laporan)
+    }
