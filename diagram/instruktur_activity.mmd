@@ -1,0 +1,12 @@
+flowchart TD
+    A([Mulai]) --> B[Instruktur membuka halaman login]
+    B --> C{Login berhasil?}
+    C -- Ya --> D[Masuk dashboard instruktur]
+    C -- Tidak --> E[Tampilkan pesan error]
+    E --> B
+    D --> F[Melihat daftar pelatihan]
+    F --> G[Memantau peserta dan nilai]
+    G --> H[Mengelola kegiatan pelatihan]
+    H --> I[Melihat data RKTL dan sertifikat]
+    I --> J[Logout]
+    J --> K([Selesai])

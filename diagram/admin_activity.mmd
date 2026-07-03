@@ -1,0 +1,13 @@
+flowchart TD
+    A([Mulai]) --> B[Admin membuka halaman login]
+    B --> C{Login berhasil?}
+    C -- Ya --> D[Masuk dashboard admin]
+    C -- Tidak --> E[Tampilkan pesan error]
+    E --> B
+    D --> F[Kelola data alumni]
+    F --> G[Verifikasi pendaftaran]
+    G --> H[Kelola data pelatihan]
+    H --> I[Atur RKTL, rekomendasi, dan tracer]
+    I --> J[Cetak laporan]
+    J --> K[Logout]
+    K --> L([Selesai])

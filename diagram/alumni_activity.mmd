@@ -1,0 +1,13 @@
+flowchart TD
+    A([Mulai]) --> B[Alumni membuka halaman login]
+    B --> C{Login berhasil?}
+    C -- Ya --> D[Masuk dashboard alumni]
+    C -- Tidak --> E[Tampilkan pesan error]
+    E --> B
+    D --> F[Melihat daftar pelatihan]
+    F --> G[Daftar pelatihan atau melihat riwayat]
+    G --> H[Mengisi tracer study]
+    H --> I[Melihat rekomendasi dan sertifikat]
+    I --> J[Melihat profil dan data pribadi]
+    J --> K[Logout]
+    K --> L([Selesai])

@@ -1,0 +1,11 @@
+flowchart TD
+    A([Mulai]) --> B[Peserta membuka halaman login]
+    B --> C{Login berhasil?}
+    C -- Ya --> D[Masuk dashboard peserta]
+    C -- Tidak --> E[Tampilkan pesan error]
+    E --> B
+    D --> F[Melihat pelatihan yang diikuti]
+    F --> G[Mengakses materi atau aktivitas pelatihan]
+    G --> H[Melihat sertifikat dan profil]
+    H --> I[Logout]
+    I --> J([Selesai])
