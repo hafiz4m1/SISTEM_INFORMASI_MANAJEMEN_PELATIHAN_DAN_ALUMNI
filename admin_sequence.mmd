@@ -1,0 +1,35 @@
+sequenceDiagram
+    participant Admin
+    participant Browser
+    participant Server
+    participant LoginController as LoginController
+    participant Database as Database
+    participant AdminDashboard as Admin Dashboard
+    participant ReportPage as Laporan Cetak
+
+    Admin ->> Browser: buka /login/login.php
+    Browser ->> Server: GET login page
+    Server -->> Browser: tampilkan form login
+    Admin ->> Browser: submit email/password
+    Browser ->> Server: POST login request
+    Server ->> LoginController: autentikasi user
+    LoginController ->> Database: SELECT user WHERE email AND is_active
+    Database -->> LoginController: user record
+    LoginController ->> LoginController: validasi password + rate limit
+    alt Login sukses
+        LoginController ->> Server: set session dan redirect
+        Server -->> Browser: redirect ke /login/admin/index.php
+        Browser ->> Server: GET /login/admin/index.php
+        Server ->> AdminDashboard: jalankan dashboard admin
+        AdminDashboard ->> Database: ambil statistik pelatihan, alumni, tracer, kelulusan, rktl
+        Database -->> AdminDashboard: data ringkasan
+        AdminDashboard -->> Browser: tampilkan dashboard admin
+        Admin ->> Browser: pilih menu laporan
+        Browser ->> Server: GET /login/admin/laporan_cetak.php?jenis=...
+        Server ->> ReportPage: jalankan laporan_cetak.php
+        ReportPage ->> Database: query dataset laporan
+        Database -->> ReportPage: baris laporan
+        ReportPage -->> Browser: tampilkan laporan lengkap dengan total
+    else Login gagal
+        LoginController -->> Browser: tampilkan pesan error
+    end

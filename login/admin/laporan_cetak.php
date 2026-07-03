@@ -362,7 +362,7 @@ while ($r = mysqli_fetch_assoc($data)) $rows[] = $r;
   <!-- KOP SURAT -->
   <div class="kop">
     <div class="kop-logo">
-      <img src="sisinfoalumni\login\images\LOGO-KEMENTRANS-Bulat.png" alt="Logo BPPMDDTT">
+      <img src="../images/LOGO-KEMENTRANS-Bulat.png" alt="Logo BPPMDDTT">
     </div>
     <div class="kop-teks">
       <div class="instansi-utama">Balai Pelatihan dan Pemberdayaan Masyarakat Desa</div>
@@ -453,6 +453,16 @@ while ($r = mysqli_fetch_assoc($data)) $rows[] = $r;
       </tr>
     <?php endforeach; ?>
     </tbody>
+    <tfoot>
+      <tr style="font-weight:bold;background:#f6f6f6;">
+        <td colspan="6">Jumlah</td>
+        <td style="text-align:center"><?= array_sum(array_column($rows,'jml_peserta')) ?></td>
+        <td style="text-align:center"><?= array_sum(array_column($rows,'jml_lulus')) ?></td>
+        <td style="text-align:center"><?= array_sum(array_column($rows,'jml_tidak_lulus')) ?></td>
+        <td style="text-align:center">-</td>
+        <td></td>
+      </tr>
+    </tfoot>
   </table>
 
   <?php elseif ($jenis === 'peserta'): ?>
@@ -495,6 +505,13 @@ while ($r = mysqli_fetch_assoc($data)) $rows[] = $r;
       </tr>
     <?php endforeach; ?>
     </tbody>
+    <tfoot>
+      <tr style="font-weight:bold;background:#f6f6f6;">
+        <td colspan="3">Jumlah Alumni</td>
+        <td style="text-align:center"><?= array_sum(array_column($rows,'jml_pelatihan')) ?></td>
+        <td colspan="3"></td>
+      </tr>
+    </tfoot>
   </table>
 
   <?php elseif ($jenis === 'tracer'): ?>
@@ -515,6 +532,13 @@ while ($r = mysqli_fetch_assoc($data)) $rows[] = $r;
       </tr>
     <?php endforeach; ?>
     </tbody>
+    <tfoot>
+      <tr style="font-weight:bold;background:#f6f6f6;">
+        <td colspan="6">Jumlah Terisi</td>
+        <td style="text-align:center"><?= $total ?></td>
+        <td colspan="2"></td>
+      </tr>
+    </tfoot>
   </table>
 
   <?php elseif ($jenis === 'rktl'): ?>
@@ -582,6 +606,18 @@ while ($r = mysqli_fetch_assoc($data)) $rows[] = $r;
       </tr>
     <?php endforeach; ?>
     </tbody>
+    <tfoot>
+      <tr style="font-weight:bold;background:#f6f6f6;">
+        <td colspan="4">Jumlah</td>
+        <td style="text-align:center"><?= array_sum(array_column($rows,'total_peserta')) ?></td>
+        <td style="text-align:center"><?= array_sum(array_column($rows,'lulus')) ?></td>
+        <td style="text-align:center"><?= array_sum(array_column($rows,'tidak_lulus')) ?></td>
+        <td style="text-align:center"><?= array_sum(array_column($rows,'total_peserta')) ? round(array_sum(array_column($rows,'lulus'))/array_sum(array_column($rows,'total_peserta'))*100,1) : 0 ?>%</td>
+        <td style="text-align:center">-</td>
+        <td style="text-align:center"><?= $rows ? max(array_filter(array_column($rows,'nilai_max'),fn($v)=>$v!==null && $v!=='')) : '-' ?></td>
+        <td style="text-align:center"><?= $rows ? min(array_filter(array_column($rows,'nilai_min'),fn($v)=>$v!==null && $v!=='')) : '-' ?></td>
+      </tr>
+    </tfoot>
   </table>
   <?php endif; ?>
 

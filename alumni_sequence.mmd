@@ -1,0 +1,28 @@
+sequenceDiagram
+    participant Alumni
+    participant Browser
+    participant Server
+    participant LoginController as LoginController
+    participant Database as Database
+    participant AlumniDashboard as Alumni Dashboard
+
+    Alumni ->> Browser: buka /login/login.php
+    Browser ->> Server: GET login page
+    Server -->> Browser: tampilkan form login
+    Alumni ->> Browser: kirim login
+    Browser ->> Server: POST login
+    Server ->> LoginController: autentikasi
+    LoginController ->> Database: SELECT user WHERE email AND is_active
+    Database -->> LoginController: user record
+    LoginController ->> LoginController: validasi password
+    alt Login sukses
+        Server -->> Browser: redirect ke /login/alumni/index.php
+        Browser ->> Server: GET /login/alumni/index.php
+        Server ->> AlumniDashboard: jalankan dashboard alumni
+        AlumniDashboard ->> Database: ambil jumlah pelatihan, lulus, rekomendasi, tracer
+        Database -->> AlumniDashboard: data ringkasan
+        AlumniDashboard -->> Browser: tampilkan pelatihan, rekomendasi, tracer study
+        Alumni ->> Browser: klik daftar pelatihan / isi tracer / lihat rekomendasi
+    else Login gagal
+        LoginController -->> Browser: tampilkan pesan error
+    end

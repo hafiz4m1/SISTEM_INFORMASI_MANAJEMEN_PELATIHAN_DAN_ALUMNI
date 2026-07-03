@@ -1,0 +1,126 @@
+sequenceDiagram
+    participant Admin
+    participant Instruktur
+    participant Alumni
+    participant Peserta
+    participant Kepala
+    participant Browser
+    participant Server
+    participant LoginController as LoginController
+    participant Database as Database
+    participant AdminDashboard as Admin Dashboard
+    participant InstrukturDashboard as Instruktur Dashboard
+    participant AlumniDashboard as Alumni Dashboard
+    participant PesertaDashboard as Peserta Dashboard
+    participant KepalaDashboard as Kepala Dashboard
+    participant ReportPage as Laporan Cetak
+
+    Admin ->> Browser: buka /login/login.php
+    Browser ->> Server: GET login page
+    Server -->> Browser: tampilkan form login
+    Admin ->> Browser: submit email/password
+    Browser ->> Server: POST login request
+    Server ->> LoginController: autentikasi user
+    LoginController ->> Database: SELECT user WHERE email AND is_active
+    Database -->> LoginController: user record
+    LoginController ->> LoginController: validasi password + rate limit
+    alt Login sukses
+        LoginController ->> Server: set session dan redirect
+        Server -->> Browser: redirect ke /login/admin/index.php
+        Browser ->> Server: GET /login/admin/index.php
+        Server ->> AdminDashboard: jalankan dashboard admin
+        AdminDashboard ->> Database: ambil statistik pelatihan, alumni, tracer, kelulusan, rktl
+        Database -->> AdminDashboard: data ringkasan
+        AdminDashboard -->> Browser: tampilkan dashboard admin
+        Admin ->> Browser: pilih menu pelatihan/alumni/tracer/kelulusan
+        Browser ->> Server: GET /login/admin/laporan_cetak.php?jenis=...
+        Server ->> ReportPage: jalankan laporan_cetak.php
+        ReportPage ->> Database: query dataset laporan
+        Database -->> ReportPage: baris laporan
+        ReportPage -->> Browser: tampilkan laporan dengan total
+    else Login gagal
+        LoginController -->> Browser: tampilkan pesan error
+    end
+
+    Instruktur ->> Browser: buka login
+    Browser ->> Server: GET login page
+    Server -->> Browser: tampilkan form login
+    Instruktur ->> Browser: kirim kredensial
+    Browser ->> Server: POST login
+    Server ->> LoginController: autentikasi
+    LoginController ->> Database: SELECT user
+    Database -->> LoginController: record
+    LoginController ->> LoginController: validasi password
+    alt Login sukses
+        Server -->> Browser: redirect ke /login/instruktur/index.php
+        Browser ->> Server: GET /login/instruktur/index.php
+        Server ->> InstrukturDashboard: jalankan dashboard instruktur
+        InstrukturDashboard ->> Database: ambil jumlah pelatihan, peserta, lulus, belum dinilai
+        Database -->> InstrukturDashboard: statistik
+        InstrukturDashboard -->> Browser: tampilkan pelatihan dan daftar peserta
+        Instruktur ->> Browser: pilih peserta / input nilai
+        Browser ->> Server: GET/POST peserta atau penilaian
+    end
+
+    Alumni ->> Browser: buka login
+    Browser ->> Server: GET login page
+    Server -->> Browser: tampilkan form login
+    Alumni ->> Browser: kirim login
+    Browser ->> Server: POST login
+    Server ->> LoginController: autentikasi
+    LoginController ->> Database: SELECT user
+    Database -->> LoginController: record
+    LoginController ->> LoginController: validasi password
+    alt Login sukses
+        Server -->> Browser: redirect ke /login/alumni/index.php
+        Browser ->> Server: GET /login/alumni/index.php
+        Server ->> AlumniDashboard: jalankan dashboard alumni
+        AlumniDashboard ->> Database: ambil jumlah pelatihan, lulus, rekomendasi, tracer
+        Database -->> AlumniDashboard: data ringkasan
+        AlumniDashboard -->> Browser: tampilkan pelatihan, rekomendasi dan tracer
+        Alumni ->> Browser: klik daftar pelatihan / isi tracer / lihat rekomendasi
+    end
+
+    Peserta ->> Browser: buka login
+    Browser ->> Server: GET login page
+    Server -->> Browser: tampilkan form login
+    Peserta ->> Browser: kirim login
+    Browser ->> Server: POST login
+    Server ->> LoginController: autentikasi
+    LoginController ->> Database: SELECT user
+    Database -->> LoginController: record
+    LoginController ->> LoginController: validasi password
+    alt Login sukses
+        Server -->> Browser: redirect ke /login/peserta/index.php
+        Browser ->> Server: GET /login/peserta/index.php
+        Server ->> PesertaDashboard: jalankan dashboard peserta
+        PesertaDashboard ->> Database: ambil jumlah pelatihan diikuti, lulus, sertifikat
+        Database -->> PesertaDashboard: statistik
+        PesertaDashboard -->> Browser: tampilkan pelatihan tersedia dan pelatihan saya
+        Peserta ->> Browser: daftar pelatihan / cek status kelulusan
+    end
+
+    Kepala ->> Browser: buka login
+    Browser ->> Server: GET login page
+    Server -->> Browser: tampilkan form login
+    Kepala ->> Browser: kirim login
+    Browser ->> Server: POST login
+    Server ->> LoginController: autentikasi
+    LoginController ->> Database: SELECT user
+    Database -->> LoginController: record
+    LoginController ->> LoginController: validasi password
+    alt Login sukses
+        Server -->> Browser: redirect ke /login/kepala/index.php
+        Browser ->> Server: GET /login/kepala/index.php
+        Server ->> KepalaDashboard: jalankan dashboard kepala
+        KepalaDashboard ->> Database: ambil statistik pelatihan, alumni, tracer, rktl, laporan menunggu
+        Database -->> KepalaDashboard: data ringkasan
+        KepalaDashboard -->> Browser: tampilkan pengesahan laporan dan status alumni
+        Kepala ->> Browser: klik pengesahan laporan
+        Browser ->> Server: GET /login/kepala/pengesahan.php
+    end
+
+    Note over Admin,Instruktur: Semua role masuk melalui form login yang sama.
+    Note over Alumni,Peserta: Semua role masuk melalui form login yang sama.
+    Note over Kepala: Semua role masuk melalui form login yang sama.
+    Note over Database,Server: Semua data diambil dari MySQL melalui query sesuai role.
