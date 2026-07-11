@@ -47,6 +47,21 @@ $rekomendasi = mysqli_query($koneksi,
 </div>
 <?php endif; ?>
 
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+      <div>
+        <h5 class="mb-1 fw-semibold"><?= htmlspecialchars($_SESSION['nama']) ?></h5>
+        <p class="mb-1 text-muted" style="font-size:14px">Asal: <?= htmlspecialchars($alumni['tempat_lahir'] ?? ($alumni['alamat'] ?? '-')) ?></p>
+        <small class="text-muted">Total pelatihan yang diikuti oleh Anda.</small>
+      </div>
+      <div>
+        <span class="badge bg-primary rounded-pill py-2 px-3" style="font-size:13px;"><?= $jml_pelatihan ?> Pelatihan</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Stat Cards -->
 <div class="row g-3 mb-4">
   <div class="col-sm-4">

@@ -28,6 +28,7 @@ if (isset($_GET['aksi']) && isset($_GET['kode'])) {
 }
 
 $filter = isset($_GET['filter']) ? $_GET['filter'] : 'menunggu';
+if (!in_array($filter, ['menunggu','diterima','ditolak','semua'])) $filter = 'menunggu';
 $where  = $filter !== 'semua' ? "WHERE pl.status='$filter'" : '';
 
 $judul = [

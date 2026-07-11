@@ -1,29 +1,19 @@
 sequenceDiagram
-    participant Kepala
-    participant Browser
-    participant Server
-    participant LoginController as LoginController
-    participant Database as Database
-    participant KepalaDashboard as Kepala Dashboard
+    %% Kepala Balai sequence diagram
+    title Diagram Urutan - Kepala Balai
+    autonumber
+    participant Kepala as Kepala Balai
+    participant HalamanLogin as Halaman Login
+    participant HalamanLaporan as Halaman Laporan
+    participant HalamanPengesahan as Pengesahan Laporan
 
-    Kepala ->> Browser: buka /login/login.php
-    Browser ->> Server: GET login page
-    Server -->> Browser: tampilkan form login
-    Kepala ->> Browser: kirim login
-    Browser ->> Server: POST login
-    Server ->> LoginController: autentikasi
-    LoginController ->> Database: SELECT user WHERE email AND is_active
-    Database -->> LoginController: user record
-    LoginController ->> LoginController: validasi password
-    alt Login sukses
-        Server -->> Browser: redirect ke /login/kepala/index.php
-        Browser ->> Server: GET /login/kepala/index.php
-        Server ->> KepalaDashboard: jalankan dashboard kepala
-        KepalaDashboard ->> Database: ambil statistik pelatihan, alumni, tracer, rktl, laporan menunggu
-        Database -->> KepalaDashboard: data ringkasan
-        KepalaDashboard -->> Browser: tampilkan pengesahan laporan dan status alumni
-        Kepala ->> Browser: klik pengesahan laporan
-        Browser ->> Server: GET /login/kepala/pengesahan.php
-    else Login gagal
-        LoginController -->> Browser: tampilkan pesan error
-    end
+    Kepala ->> HalamanLogin: Login ke sistem
+    HalamanLogin ->> HalamanLogin: Autentikasi berhasil
+    HalamanLogin ->> Kepala: Konfirmasi login
+    Kepala ->> HalamanLaporan: Buka laporan
+    HalamanLaporan ->> HalamanLaporan: Tampilkan laporan pelatihan, peserta, alumni, tracer study, RTKL, rekomendasi pelatihan, kelulusan
+    HalamanLaporan ->> Kepala: Laporan tersedia
+    Kepala ->> HalamanPengesahan: Buka pengesahan laporan
+    HalamanPengesahan ->> HalamanPengesahan: Tampilkan status laporan (Menunggu, Disahkan, Ditolak, Semua)
+    HalamanPengesahan ->> Kepala: Status pengesahan ditampilkan
+    Kepala ->> HalamanLogin: Logout

@@ -1,11 +1,37 @@
 flowchart TD
-    A([Mulai]) --> B[Peserta membuka halaman login]
-    B --> C{Login berhasil?}
-    C -- Ya --> D[Masuk dashboard peserta]
-    C -- Tidak --> E[Tampilkan pesan error]
-    E --> B
-    D --> F[Melihat pelatihan yang diikuti]
-    F --> G[Mengakses materi atau aktivitas pelatihan]
-    G --> H[Melihat sertifikat dan profil]
-    H --> I[Logout]
-    I --> J([Selesai])
+    Start([Mulai])
+    
+    subgraph Peserta["Peserta"]
+        direction TB
+        A[Login]
+        B[Lihat Pelatihan<br/>Tersedia]
+        C{Ingin<br/>Mendaftar?}
+        D[Daftar Pelatihan]
+        E[Cek Status<br/>Kelulusan]
+        F[Download<br/>Sertifikat]
+        G[Lihat Hasil<br/>Laporan]
+    end
+    
+    subgraph System["Sistem/Aplikasi"]
+        direction TB
+        X[Proses<br/>Pendaftaran]
+        Y[Surat Pendaftaran<br/>Tersimpan]
+        Z[Update Status<br/>Peserta]
+        W[Sertifikat<br/>Tersimpan]
+    end
+    
+    End([Selesai])
+    
+    Start --> A
+    A --> B
+    B --> C
+    C -->|Ya| D
+    C -->|Tidak| E
+    D -->|Daftar Data| X
+    X --> Y
+    Y -->|Pendaftaran Berhasil| E
+    E -->|Status Update| Z
+    Z -->|Sudah Lulus| F
+    F -->|Sertifikat| W
+    W --> G
+    G --> End

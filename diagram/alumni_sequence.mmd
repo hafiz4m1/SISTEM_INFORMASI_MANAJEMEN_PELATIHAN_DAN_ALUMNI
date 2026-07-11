@@ -1,28 +1,32 @@
 sequenceDiagram
-    participant Alumni
-    participant Browser
-    participant Server
-    participant LoginController as LoginController
-    participant Database as Database
-    participant AlumniDashboard as Alumni Dashboard
+    %% Alumni sequence diagram
+    title Diagram Urutan - Alumni
+    autonumber
+    participant Alumni as Alumni
+    participant HalamanLogin as Halaman Login
+    participant HalamanDashboard as Halaman Dashboard
+    participant HalamanProfile as Profil
+    participant HalamanRiwayat as Riwayat Pelatihan
+    participant HalamanRTKL as RTKL Saya
+    participant HalamanTracer as Tracer Study
+    participant HalamanSertifikat as Sertifikat
+    participant HalamanRekomendasi as Rekomendasi Pelatihan
 
-    Alumni ->> Browser: buka /login/login.php
-    Browser ->> Server: GET login page
-    Server -->> Browser: tampilkan form login
-    Alumni ->> Browser: kirim login
-    Browser ->> Server: POST login
-    Server ->> LoginController: autentikasi
-    LoginController ->> Database: SELECT user WHERE email AND is_active
-    Database -->> LoginController: user record
-    LoginController ->> LoginController: validasi password
-    alt Login sukses
-        Server -->> Browser: redirect ke /login/alumni/index.php
-        Browser ->> Server: GET /login/alumni/index.php
-        Server ->> AlumniDashboard: jalankan dashboard alumni
-        AlumniDashboard ->> Database: ambil jumlah pelatihan, lulus, rekomendasi, tracer
-        Database -->> AlumniDashboard: data ringkasan
-        AlumniDashboard -->> Browser: tampilkan pelatihan, rekomendasi, tracer study
-        Alumni ->> Browser: klik daftar pelatihan / isi tracer / lihat rekomendasi
-    else Login gagal
-        LoginController -->> Browser: tampilkan pesan error
-    end
+    Alumni ->> HalamanLogin: Login ke sistem
+    HalamanLogin ->> HalamanLogin: Autentikasi berhasil
+    HalamanLogin ->> Alumni: Konfirmasi login
+    Alumni ->> HalamanDashboard: Buka dashboard alumni
+    HalamanDashboard ->> Alumni: Tampilkan ringkasan
+    Alumni ->> HalamanProfile: Buka profil
+    HalamanProfile ->> Alumni: Tampilkan data profil
+    Alumni ->> HalamanRiwayat: Buka riwayat pelatihan
+    HalamanRiwayat ->> Alumni: Tampilkan riwayat pelatihan
+    Alumni ->> HalamanRTKL: Buka RTKL Saya
+    HalamanRTKL ->> Alumni: Tampilkan status RTKL
+    Alumni ->> HalamanTracer: Buka tracer study
+    HalamanTracer ->> Alumni: Tampilkan tracer study
+    Alumni ->> HalamanSertifikat: Buka sertifikat
+    HalamanSertifikat ->> Alumni: Tampilkan sertifikat
+    Alumni ->> HalamanRekomendasi: Buka rekomendasi pelatihan
+    HalamanRekomendasi ->> Alumni: Tampilkan rekomendasi pelatihan
+    Alumni ->> HalamanLogin: Logout

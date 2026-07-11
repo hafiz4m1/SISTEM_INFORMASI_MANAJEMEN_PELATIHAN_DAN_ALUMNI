@@ -1,11 +1,8 @@
 <?php
-/**
- * index.php - Landing page yang disempurnakan
- * Taruh di root sisinfoalumni/ (bukan di login/)
- */
+
 session_start();
 
-// Redirect jika sudah login
+
 if (isset($_SESSION['logged_in'])) {
     $dash = ['admin'=>'admin','instruktur'=>'instruktur','alumni'=>'alumni','peserta'=>'peserta','kepala'=>'kepala'];
     header("location: login/" . ($dash[$_SESSION['level']] ?? 'peserta') . "/index.php"); exit;
@@ -59,6 +56,9 @@ $kategori_data = [];
 $q2 = mysqli_query($koneksi, "SELECT p.jenis, COUNT(DISTINCT a.id) as jml FROM peserta_pelatihan pp JOIN pelatihan p ON pp.pelatihan_id=p.id JOIN alumni a ON a.user_id=pp.user_id WHERE p.jenis IS NOT NULL GROUP BY p.jenis ORDER BY jml DESC");
 while ($r = mysqli_fetch_assoc($q2)) $kategori_data[] = $r;
 
+$alumni_info = mysqli_query($koneksi, "SELECT a.id, u.name, COALESCE(a.tempat_lahir, a.alamat, '-') as asal, (SELECT COUNT(*) FROM peserta_pelatihan pp WHERE pp.user_id=a.user_id) as jml_pelatihan FROM alumni a JOIN users u ON a.user_id=u.id ORDER BY jml_pelatihan DESC LIMIT 3");
+$instruktur_info = mysqli_query($koneksi, "SELECT i.id, u.name, COALESCE(i.unit, u.email, '-') as asal, (SELECT COUNT(*) FROM pelatihan p WHERE p.instruktur_id=i.id) as jml_pelatihan, (SELECT COUNT(*) FROM peserta_pelatihan pp JOIN pelatihan p ON pp.pelatihan_id=p.id WHERE p.instruktur_id=i.id) as jml_peserta FROM instruktur i JOIN users u ON i.user_id=u.id ORDER BY jml_pelatihan DESC LIMIT 3");
+
 // Top pelatihan
 $top_pelatihan = mysqli_query($koneksi, "
     SELECT p.nama_pelatihan, p.jenis,
@@ -95,6 +95,19 @@ $top_pelatihan = mysqli_query($koneksi, "
     .navbar-brand span { opacity:.7; font-weight:400; }
     .navbar-logo { height:32px; object-fit:contain; margin-right:10px; opacity:.95; }
     .nav-btn { font-size:13px; border-radius:8px; padding:6px 20px; font-weight:600; }
+
+    /* Menu toggle button */
+    .btn-menu-toggle { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25);
+      color:#fff; border-radius:8px; width:40px; height:40px; display:flex;
+      align-items:center; justify-content:center; font-size:18px; transition:background .15s; }
+    .btn-menu-toggle:hover { background:rgba(255,255,255,.22); color:#fff; }
+
+    /* Offcanvas menu */
+    .offcanvas-header { border-bottom:1px solid #eef1f5; }
+    .navbar-nav-menu { list-style:none; padding:0; margin:0; }
+    .navbar-nav-menu li a { display:flex; align-items:center; padding:12px 8px; color:#1a2942;
+      text-decoration:none; font-weight:600; font-size:14.5px; border-radius:8px; transition:background .15s; }
+    .navbar-nav-menu li a:hover { background:#f4f6fb; color:var(--primary); }
 
     /* Hero */
     .hero { background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
@@ -179,12 +192,34 @@ $top_pelatihan = mysqli_query($koneksi, "
       <img src="assets/images/LOGO-KEMENTRANS-Bulat.png" alt="Kementerian Transmigrasi" class="navbar-logo">
       <span>Monitoring Alumni &amp; Pelatih <span style="opacity:.6">· BPPMDDTT</span></span>
     </a>
-    <div class="d-flex gap-2 ms-auto">
-      <a href="login/login.php"    class="btn btn-outline-light nav-btn">Login</a>
-      <a href="login/register.php" class="btn btn-warning nav-btn">Daftar</a>
+    <div class="d-flex align-items-center gap-2 ms-auto">
+      <button class="btn btn-menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuUtama" aria-controls="menuUtama" aria-label="Buka menu">
+        <i class="bi bi-justify-right"></i>
+      </button>
     </div>
   </div>
 </nav>
+
+<!-- Offcanvas Menu -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="menuUtama" aria-labelledby="menuUtamaLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="menuUtamaLabel">Menu</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Tutup"></button>
+  </div>
+  <div class="offcanvas-body d-flex flex-column">
+    <ul class="navbar-nav-menu mb-4">
+      <li><a href="#tentang" data-bs-dismiss="offcanvas"><i class="bi bi-info-circle me-2"></i>Tentang Kami</a></li>
+      <li><a href="#pelatihan" data-bs-dismiss="offcanvas"><i class="bi bi-journal-bookmark me-2"></i>Pelatihan</a></li>
+      <li><a href="login/Infoalumni_pelatih.php"><i class="bi bi-people me-2"></i>Alumni &amp; Pelatih</a></li>
+      <li><a href="#statistik" data-bs-dismiss="offcanvas"><i class="bi bi-bar-chart me-2"></i>Statistik</a></li>
+      <li><a href="#peringkat" data-bs-dismiss="offcanvas"><i class="bi bi-trophy me-2"></i>Peringkat Pelatihan</a></li>
+    </ul>
+    <div class="mt-auto d-flex flex-column gap-2">
+      <a href="login/login.php" class="btn btn-outline-primary">Login</a>
+      <a href="login/register.php" class="btn btn-primary">Daftar Sekarang</a>
+    </div>
+  </div>
+</div>
 
 <!-- Hero -->
 <section class="hero">
@@ -240,7 +275,7 @@ $top_pelatihan = mysqli_query($koneksi, "
 </section>
 
 <!-- Tentang -->
-<section class="py-5" style="background:#f4f6fb">
+<section id="tentang" class="py-5" style="background:#f4f6fb">
   <div class="container reveal">
     <div class="row align-items-center g-5">
       <div class="col-lg-6">
@@ -281,7 +316,7 @@ $top_pelatihan = mysqli_query($koneksi, "
 </section>
 
 <!-- Pelatihan Tersedia -->
-<section class="py-5 bg-white">
+<section id="pelatihan" class="py-5 bg-white">
   <div class="container reveal">
     <div class="d-flex justify-content-between align-items-end mb-4">
       <div>
@@ -336,7 +371,7 @@ $top_pelatihan = mysqli_query($koneksi, "
 </section>
 
 <!-- Grafik Sebaran -->
-<section class="py-5" style="background:#f4f6fb">
+<section id="statistik" class="py-5" style="background:#f4f6fb">
   <div class="container reveal">
     <div class="section-badge">Statistik</div>
     <h2 class="section-title">Sebaran Alumni</h2>
@@ -363,7 +398,7 @@ $top_pelatihan = mysqli_query($koneksi, "
 </section>
 
 <!-- Top 10 Pelatihan -->
-<section class="py-5 bg-white">
+<section id="peringkat" class="py-5 bg-white">
   <div class="container reveal">
     <div class="section-badge">Peringkat</div>
     <h2 class="section-title">Top 10 Pelatihan Paling Berpengaruh</h2>
@@ -438,6 +473,7 @@ $top_pelatihan = mysqli_query($koneksi, "
           <a href="login/daftar_pelatihan.php" class="d-block">Daftar Pelatihan</a>
           <a href="login/login.php" class="d-block">Login</a>
           <a href="login/register.php" class="d-block">Registrasi</a>
+          <a href="login/Infoalumni_pelatih.php" class="d-block">Info Alumni/Pelatih</a>
         </div>
       </div>
       <div class="col-md-4">

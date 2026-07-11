@@ -67,13 +67,11 @@ $instruktur_id = $instruktur['id'] ?? 0;
     <h6>Portal Instruktur</h6>
     <small>BPPMDDTT Banjarmasin</small>
   </div>
-  <div class="nav-label">Menu</div>
   <a href="index.php" class="nav-link <?= $current==='index.php'?'active':'' ?>"><i class="bi bi-speedometer2"></i> Dashboard</a>
   <a href="profile.php" class="nav-link <?= $current==='profile.php'?'active':'' ?>"><i class="bi bi-person-circle"></i> Profil Saya</a>
   <a href="pelatihan.php" class="nav-link <?= $current==='pelatihan.php'?'active':'' ?>"><i class="bi bi-journal-bookmark"></i> Pelatihan Saya</a>
   <a href="rktl.php" class="nav-link <?= $current==='rktl.php'?'active':'' ?>"><i class="bi bi-clipboard2-check"></i> Monitoring RKTL</a>
   <a href="peserta.php" class="nav-link <?= $current==='peserta.php'?'active':'' ?>"><i class="bi bi-people"></i> Kelola Peserta</a>
-  <div class="nav-label">Pengaturan</div>
   <a href="../ganti_password.php" class="nav-link"><i class="bi bi-shield-lock"></i> Ganti Password</a>
   <div class="sidebar-footer">
     <a href="../logout.php"><i class="bi bi-box-arrow-left"></i> Keluar</a>

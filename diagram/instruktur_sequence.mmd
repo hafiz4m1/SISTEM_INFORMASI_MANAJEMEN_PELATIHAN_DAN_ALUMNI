@@ -1,29 +1,26 @@
 sequenceDiagram
-    participant Instruktur
-    participant Browser
-    participant Server
-    participant LoginController as LoginController
-    participant Database as Database
-    participant InstrukturDashboard as Instruktur Dashboard
+    %% Instruktur sequence diagram
+    title Diagram Urutan - Instruktur
+    autonumber
+    participant Instruktur as Instruktur
+    participant HalamanLogin as Halaman Login
+    participant HalamanDashboard as Halaman Dashboard
+    participant HalamanProfile as Profil
+    participant HalamanPelatihan as Pelatihan Saya
+    participant HalamanMonitoring as Monitoring RTKL
+    participant HalamanPeserta as Kelola Peserta
 
-    Instruktur ->> Browser: buka /login/login.php
-    Browser ->> Server: GET login page
-    Server -->> Browser: tampilkan form login
-    Instruktur ->> Browser: kirim kredensial
-    Browser ->> Server: POST login
-    Server ->> LoginController: autentikasi
-    LoginController ->> Database: SELECT user WHERE email AND is_active
-    Database -->> LoginController: user record
-    LoginController ->> LoginController: validasi password
-    alt Login sukses
-        Server -->> Browser: redirect ke /login/instruktur/index.php
-        Browser ->> Server: GET /login/instruktur/index.php
-        Server ->> InstrukturDashboard: jalankan dashboard instruktur
-        InstrukturDashboard ->> Database: ambil jumlah pelatihan, peserta, lulus, belum dinilai
-        Database -->> InstrukturDashboard: statistik
-        InstrukturDashboard -->> Browser: tampilkan pelatihan dan daftar peserta
-        Instruktur ->> Browser: pilih peserta / input nilai
-        Browser ->> Server: POST nilai peserta
-    else Login gagal
-        LoginController -->> Browser: tampilkan pesan error
-    end
+    Instruktur ->> HalamanLogin: Login ke sistem
+    HalamanLogin ->> HalamanLogin: Autentikasi berhasil
+    HalamanLogin ->> Instruktur: Konfirmasi login
+    Instruktur ->> HalamanDashboard: Buka dashboard instruktur
+    HalamanDashboard ->> Instruktur: Tampilkan ringkasan
+    Instruktur ->> HalamanProfile: Buka profil
+    HalamanProfile ->> Instruktur: Tampilkan data profil
+    Instruktur ->> HalamanPelatihan: Buka pelatihan saya
+    HalamanPelatihan ->> Instruktur: Tampilkan jadwal dan materi
+    Instruktur ->> HalamanMonitoring: Buka monitoring RTKL
+    HalamanMonitoring ->> Instruktur: Tampilkan status RTKL
+    Instruktur ->> HalamanPeserta: Buka kelola peserta
+    HalamanPeserta ->> Instruktur: Tampilkan daftar peserta
+    Instruktur ->> HalamanLogin: Logout

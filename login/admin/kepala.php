@@ -1,22 +1,37 @@
 <?php
 $page_title = 'Manajemen Kepala Balai';
+
+include_once '../koneksi.php';
+include_once '../security.php';
 include 'header.php';
 
 $pesan  = isset($_GET['pesan']) ? $_GET['pesan'] : '';
 $errors = [];
 
-// Aktifkan kepala baru (nonaktifkan yang lama otomatis via trigger)
+// Aktifkan kepala baru (nonaktifkan yang lama secara eksplisit)
 if (isset($_GET['aktifkan'])) {
     $id = (int)$_GET['aktifkan'];
-    mysqli_query($koneksi, "UPDATE kepala SET is_aktif=1, mulai_jabatan=CURDATE() WHERE id=$id");
-    header("location: kepala.php?pesan=Kepala berhasil diaktifkan. Data laporan akan otomatis menggunakan kepala baru."); exit;
+    $res1 = mysqli_query($koneksi, "UPDATE kepala SET is_aktif=0, selesai_jabatan=CURDATE() WHERE is_aktif=1 AND id != $id");
+    if (!$res1) {
+        die('Gagal menonaktifkan kepala lama: ' . mysqli_error($koneksi));
+    }
+    $res2 = mysqli_query($koneksi, "UPDATE kepala SET is_aktif=1, mulai_jabatan=CURDATE() WHERE id=$id");
+    if (!$res2) {
+        die('Gagal mengaktifkan kepala baru: ' . mysqli_error($koneksi));
+    }
+    header("Location: kepala.php?pesan=Kepala berhasil diaktifkan. Data laporan akan otomatis menggunakan kepala baru.");
+    exit;
 }
 
 // Nonaktifkan kepala
 if (isset($_GET['nonaktifkan'])) {
     $id = (int)$_GET['nonaktifkan'];
-    mysqli_query($koneksi, "UPDATE kepala SET is_aktif=0, selesai_jabatan=CURDATE() WHERE id=$id");
-    header("location: kepala.php?pesan=Kepala berhasil dinonaktifkan."); exit;
+    $res = mysqli_query($koneksi, "UPDATE kepala SET is_aktif=0, selesai_jabatan=CURDATE() WHERE id=$id");
+    if (!$res) {
+        die('Gagal menonaktifkan kepala: ' . mysqli_error($koneksi));
+    }
+    header("Location: kepala.php?pesan=Kepala berhasil dinonaktifkan.");
+    exit;
 }
 
 // Tambah kepala baru
@@ -27,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
     $pangkat  = mysqli_real_escape_string($koneksi, $_POST['pangkat']);
     $golongan = mysqli_real_escape_string($koneksi, $_POST['golongan']);
     $email    = mysqli_real_escape_string($koneksi, $_POST['email']);
-    $mulai    = $_POST['mulai_jabatan'];
+    $mulai    = mysqli_real_escape_string($koneksi, $_POST['mulai_jabatan']);
 
     if (!$nama)  $errors[] = 'Nama lengkap wajib diisi.';
     if (!$email) $errors[] = 'Email wajib diisi.';
@@ -124,7 +139,7 @@ $data = mysqli_query($koneksi, "
           <div class="mb-3">
             <label class="form-label fw-semibold" style="font-size:13px">Mulai Menjabat</label>
             <input type="date" name="mulai_jabatan" class="form-control form-control-sm"
-                   value="<?= $_POST['mulai_jabatan'] ?? date('Y-m-d') ?>">
+                   value="<?= htmlspecialchars($_POST['mulai_jabatan'] ?? date('Y-m-d')) ?>">
           </div>
           <button type="submit" name="tambah" class="btn btn-primary w-100 btn-sm">
             <i class="bi bi-plus-lg me-1"></i> Tambah Kepala
@@ -163,6 +178,9 @@ $data = mysqli_query($koneksi, "
                 <?php endif; ?>
               </td>
               <td>
+                <a href="kepala_edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-outline-warning me-1" title="Edit Kepala">
+                  <i class="bi bi-pencil"></i>
+                </a>
                 <?php if (!$row['is_aktif']): ?>
                   <a href="kepala.php?aktifkan=<?= $row['id'] ?>"
                      class="btn btn-sm btn-success"

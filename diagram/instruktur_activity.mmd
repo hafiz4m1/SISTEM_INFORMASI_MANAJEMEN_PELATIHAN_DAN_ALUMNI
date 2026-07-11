@@ -1,12 +1,34 @@
 flowchart TD
-    A([Mulai]) --> B[Instruktur membuka halaman login]
-    B --> C{Login berhasil?}
-    C -- Ya --> D[Masuk dashboard instruktur]
-    C -- Tidak --> E[Tampilkan pesan error]
-    E --> B
-    D --> F[Melihat daftar pelatihan]
-    F --> G[Memantau peserta dan nilai]
-    G --> H[Mengelola kegiatan pelatihan]
-    H --> I[Melihat data RKTL dan sertifikat]
-    I --> J[Logout]
-    J --> K([Selesai])
+    Start([Mulai])
+    
+    subgraph Instruktur["Instruktur"]
+        direction TB
+        A[Login]
+        B[Cek Jadwal<br/>Pelatihan]
+        C[Lihat Daftar<br/>Peserta]
+        D[Input Nilai<br/>Peserta]
+        E[Isi RKTL<br/>Pelatihan]
+        F[Terbitkan<br/>Sertifikat]
+    end
+    
+    subgraph System["Sistem/Aplikasi"]
+        direction TB
+        X[Verifikasi<br/>Peserta]
+        Y[Peserta<br/>Terverifikasi]
+        Z[Nilai<br/>Tersimpan]
+        W[RKTL<br/>Tersimpan]
+    end
+    
+    End([Selesai])
+    
+    Start --> A
+    A --> B
+    B -->|Ada Peserta Baru| C
+    C -->|Verifikasi Peserta| X
+    X --> Y
+    Y -->|Peserta Valid| D
+    D -->|Nilai Data| Z
+    Z --> E
+    E -->|RKTL Data| W
+    W --> F
+    F --> End

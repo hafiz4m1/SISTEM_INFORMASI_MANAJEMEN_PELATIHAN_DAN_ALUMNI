@@ -1,127 +1,77 @@
-usecaseDiagram
-    actor Admin
-    actor Alumni
-    actor Peserta
-    actor Instruktur
-    actor Kepala
-
-    Admin --> (Login)
-    Admin --> (Kelola akun pengguna)
-    Admin --> (Verifikasi pendaftaran)
-    Admin --> (Kelola data alumni)
-    Admin --> (Kelola pelatihan)
-    Admin --> (Kelola RKTL)
-    Admin --> (Kelola tracer study)
-    Admin --> (Kelola rekomendasi)
-    Admin --> (Cetak laporan)
-
-    Alumni --> (Login)
-    Alumni --> (Edit profil)
-    Alumni --> (Daftar pelatihan)
-    Alumni --> (Lihat riwayat pelatihan)
-    Alumni --> (Isi tracer study)
-    Alumni --> (Lihat sertifikat)
-    Alumni --> (Lihat rekomendasi)
-
-    Peserta --> (Login)graph LR
-    %% Konfigurasi Aktor
-    Admin["👤 Admin"]
-    Alumni["👤 Alumni"]
-    Peserta["👤 Peserta"]
-    Instruktur["👤 Instruktur"]
-    Kepala["👤 Kepala Balai"]
-
-    %% Batasan Sistem (System Boundary)
-    subgraph "Sistem Informasi Alumni"
-        UC_Login([Login])
-        UC_KelolaAkun([Kelola akun pengguna])
-        UC_VerifDaftar([Verifikasi pendaftaran])
-        UC_KelolaAlumni([Kelola data alumni])
-        UC_KelolaPelatihan([Kelola pelatihan])
-        UC_KelolaRKTL([Kelola RKTL])
-        UC_KelolaTracer([Kelola tracer study])
-        UC_KelolaRekomendasi([Kelola rekomendasi])
-        UC_CetakLapor([Cetak laporan])
-        UC_EditProfil([Edit profil])
-        UC_DaftarPelatihan([Daftar pelatihan])
-        UC_LihatRiwayat([Lihat riwayat pelatihan])
-        UC_IsiTracer([Isi tracer study])
-        UC_LihatSertif([Lihat sertifikat])
-        UC_LihatRekomendasi([Lihat rekomendasi])
-        UC_PantauPeserta([Pantau peserta])
-        UC_InputNilai([Input nilai])
-        UC_Pengesahan([Pengesahan])
-        UC_LihatLapor([Lihat laporan])
+flowchart LR
+    subgraph Actors
+      A1[Admin]
+      A2[Instruktur]
+      A3[Alumni]
+      A4[Peserta]
+      A5[Kepala Balai]
     end
 
-    %% Hubungan Aktor Admin
-    Admin --> UC_Login
-    Admin --> UC_KelolaAkun
-    Admin --> UC_VerifDaftar
-    Admin --> UC_KelolaAlumni
-    Admin --> UC_KelolaPelatihan
-    Admin --> UC_KelolaRKTL
-    Admin --> UC_KelolaTracer
-    Admin --> UC_KelolaRekomendasi
-    Admin --> UC_CetakLapor
+    subgraph System["Sistem Informasi Alumni"]
+      U1[[Login]]
+      U2[[Kelola Pelatihan]]
+      U3[[Verifikasi Pendaftaran]]
+      U4[[Manajemen User]]
+      U5[[Kelola RKTL]]
+      U6[[Kelola Tracer Study]]
+      U7[[Kelola Rekomendasi Pelatihan]]
+      U8[[Generate Laporan]]
+      U9[[Dashboard Instruktur]]
+      U10[[Pelatihan Saya]]
+      U11[[Pantau Peserta]]
+      U12[[Input Nilai]]
+      U13[[Monitoring RTKL]]
+      U14[[Dashboard Alumni]]
+      U15[[Profil]]
+      U16[[Riwayat Pelatihan]]
+      U17[[RTKL Saya]]
+      U18[[Isi Tracer Study]]
+      U19[[Sertifikat]]
+      U20[[Lihat Rekomendasi Pelatihan]]
+      U21[[Daftar Pelatihan]]
+      U22[[Lihat Laporan]]
+      U23[[Pengesahan Laporan]]
+    end
 
-    %% Hubungan Aktor Alumni
-    Alumni --> UC_Login
-    Alumni --> UC_EditProfil
-    Alumni --> UC_DaftarPelatihan
-    Alumni --> UC_LihatRiwayat
-    Alumni --> UC_IsiTracer
-    Alumni --> UC_LihatSertif
-    Alumni --> UC_LihatRekomendasi
+    A1 --> U1
+    A1 --> U2
+    A1 --> U3
+    A1 --> U4
+    A1 --> U5
+    A1 --> U6
+    A1 --> U7
+    A1 --> U8
 
-    %% Hubungan Aktor Peserta
-    Peserta --> UC_Login
-    Peserta --> UC_EditProfil
-    Peserta --> UC_DaftarPelatihan
-    Peserta --> UC_LihatSertif
+    A2 --> U1
+    A2 --> U9
+    A2 --> U10
+    A2 --> U11
+    A2 --> U12
+    A2 --> U13
 
-    %% Hubungan Aktor Instruktur
-    Instruktur --> UC_Login
-    Instruktur --> UC_KelolaPelatihan
-    Instruktur --> UC_PantauPeserta
-    Instruktur --> UC_InputNilai
+    A3 --> U1
+    A3 --> U14
+    A3 --> U15
+    A3 --> U16
+    A3 --> U17
+    A3 --> U18
+    A3 --> U19
+    A3 --> U20
 
-    %% Hubungan Aktor Kepala
-    Kepala --> UC_Login
-    Kepala --> UC_Pengesahan
-    Kepala --> UC_LihatLapor
-    Peserta --> (Edit profil)
-    Peserta --> (Daftar pelatihan)
-    Peserta --> (Lihat sertifikat)
+    A4 --> U1
+    A4 --> U15
+    A4 --> U21
 
-    Instruktur --> (Login)
-    Instruktur --> (Kelola pelatihan)
-    Instruktur --> (Pantau peserta)
-    Instruktur --> (Input nilai)
+    A5 --> U1
+    A5 --> U22
+    A5 --> U23
 
-    Kepala --> (Login)
-    Kepala --> (Pengesahan)
-    Kepala --> (Lihat laporan)
+    U8 --> U24[[Laporan Pelatihan]]
+    U8 --> U25[[Laporan Peserta]]
+    U8 --> U26[[Laporan Alumni]]
+    U8 --> U27[[Laporan Tracer Study]]
+    U8 --> U28[[Laporan RTKL]]
+    U8 --> U29[[Laporan Rekomendasi]]
+    U8 --> U30[[Laporan Kelulusan]]
 
-    %% Group use cases inside boundary
-    rectangle "Sistem Informasi Alumni" {
-        (Login)
-        (Kelola akun pengguna)
-        (Verifikasi pendaftaran)
-        (Kelola data alumni)
-        (Kelola pelatihan)
-        (Kelola RKTL)
-        (Kelola tracer study)
-        (Kelola rekomendasi)
-        (Cetak laporan)
-        (Edit profil)
-        (Daftar pelatihan)
-        (Lihat riwayat pelatihan)
-        (Isi tracer study)
-        (Lihat sertifikat)
-        (Lihat rekomendasi)
-        (Pantau peserta)
-        (Input nilai)
-        (Pengesahan)
-        (Lihat laporan)
-    }
+

@@ -157,7 +157,7 @@ if (isset($_GET['daftar'])) {
             $svMap = ['menunggu'=>['warning','Menunggu'],'diterima'=>['success','Diterima'],'ditolak'=>['danger','Ditolak']];
             $svd = $svMap[$sv] ?? ['secondary','?'];
             ?>
-            <span class="badge bg-<?= $svd[0] ?> bg-opacity-15 text-<?= $svd[0] ?>"><?= $svd[1] ?></span>
+            <span class="badge bg-<?= $svd[0] ?> bg-opacity-10 text-<?= $svd[0] ?>"><?= $svd[1] ?></span>
             <?php if ($sv==='ditolak' && $row['alasan_tolak']): ?>
               <br><small class="text-danger"><?= htmlspecialchars($row['alasan_tolak']) ?></small>
             <?php endif; ?>
@@ -168,7 +168,7 @@ if (isset($_GET['daftar'])) {
             $slMap = ['belum_dinilai'=>['secondary','Belum Dinilai'],'lulus'=>['success','Lulus'],'tidak_lulus'=>['danger','Tidak Lulus']];
             $sld = $slMap[$sl] ?? ['secondary','?'];
             ?>
-            <span class="badge bg-<?= $sld[0] ?> bg-opacity-15 text-<?= $sld[0] ?>"><?= $sld[1] ?></span>
+            <span class="badge bg-<?= $sld[0] ?> bg-opacity-10 text-<?= $sld[0] ?>"><?= $sld[1] ?></span>
           </td>
         </tr>
       <?php endwhile; ?>

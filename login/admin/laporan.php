@@ -5,6 +5,8 @@ include 'header.php';
 // Filter tanggal
 $tgl_dari  = isset($_GET['dari'])  ? $_GET['dari']  : '2024-01-01';
 $tgl_sampai = isset($_GET['sampai']) ? $_GET['sampai'] : date('Y-m-d');
+if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $tgl_dari))   $tgl_dari  = '2024-01-01';
+if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $tgl_sampai)) $tgl_sampai = date('Y-m-d');
 $tab_aktif = isset($_GET['tab']) ? $_GET['tab'] : 'pelatihan';
 
 // ============================================================

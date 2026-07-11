@@ -1,28 +1,17 @@
 sequenceDiagram
-    participant Peserta
-    participant Browser
-    participant Server
-    participant LoginController as LoginController
-    participant Database as Database
-    participant PesertaDashboard as Peserta Dashboard
+    %% Peserta sequence diagram
+    title Diagram Urutan - Peserta
+    autonumber
+    participant Peserta as Peserta
+    participant HalamanLogin as Halaman Login
+    participant HalamanProfile as Profil
+    participant HalamanPelatihan as Pelatihan
 
-    Peserta ->> Browser: buka /login/login.php
-    Browser ->> Server: GET login page
-    Server -->> Browser: tampilkan form login
-    Peserta ->> Browser: kirim login
-    Browser ->> Server: POST login
-    Server ->> LoginController: autentikasi
-    LoginController ->> Database: SELECT user WHERE email AND is_active
-    Database -->> LoginController: user record
-    LoginController ->> LoginController: validasi password
-    alt Login sukses
-        Server -->> Browser: redirect ke /login/peserta/index.php
-        Browser ->> Server: GET /login/peserta/index.php
-        Server ->> PesertaDashboard: jalankan dashboard peserta
-        PesertaDashboard ->> Database: ambil jumlah pelatihan diikuti, lulus, sertifikat
-        Database -->> PesertaDashboard: statistik
-        PesertaDashboard -->> Browser: tampilkan pelatihan tersedia dan pelatihan saya
-        Peserta ->> Browser: daftar pelatihan / cek status kelulusan
-    else Login gagal
-        LoginController -->> Browser: tampilkan pesan error
-    end
+    Peserta ->> HalamanLogin: Login ke sistem
+    HalamanLogin ->> HalamanLogin: Autentikasi berhasil
+    HalamanLogin ->> Peserta: Konfirmasi login
+    Peserta ->> HalamanProfile: Buka profil
+    HalamanProfile ->> Peserta: Tampilkan data profil
+    Peserta ->> HalamanPelatihan: Buka pelatihan
+    HalamanPelatihan ->> Peserta: Tampilkan daftar pelatihan
+    Peserta ->> HalamanLogin: Logout

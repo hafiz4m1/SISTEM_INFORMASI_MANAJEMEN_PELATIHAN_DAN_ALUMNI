@@ -1,8 +1,9 @@
 <?php
 $page_title = 'Tracer Study';
 include '../koneksi.php';
+include 'header.php';
 
-// Kirim tracer ke semua alumni yang belum pernah menerima SEBELUM include header
+// Kirim tracer ke semua alumni yang belum pernah menerima
 if (isset($_GET['kirim_semua'])) {
     $alumni_list = mysqli_query($koneksi, "SELECT id FROM alumni");
     $kirim = 0;
@@ -16,8 +17,6 @@ if (isset($_GET['kirim_semua'])) {
     header("Location: tracer.php?pesan=Tracer study berhasil dikirim ke $kirim alumni.");
     exit;
 }
-
-include 'header.php';
 
 $pesan = isset($_GET['pesan']) ? $_GET['pesan'] : '';
 

@@ -1,13 +1,38 @@
 flowchart TD
-    A([Mulai]) --> B[Alumni membuka halaman login]
-    B --> C{Login berhasil?}
-    C -- Ya --> D[Masuk dashboard alumni]
-    C -- Tidak --> E[Tampilkan pesan error]
-    E --> B
-    D --> F[Melihat daftar pelatihan]
-    F --> G[Daftar pelatihan atau melihat riwayat]
-    G --> H[Mengisi tracer study]
-    H --> I[Melihat rekomendasi dan sertifikat]
-    I --> J[Melihat profil dan data pribadi]
-    J --> K[Logout]
-    K --> L([Selesai])
+    Start([Mulai])
+    
+    subgraph Alumni["Alumni"]
+        direction TB
+        A[Login]
+        B[Lihat Pelatihan<br/>Tersedia]
+        C{Ingin<br/>Mendaftar?}
+        D[Daftar Pelatihan]
+        E[Isi RTKL Saya]
+        F[Isi Tracer Study]
+        G[Download Sertifikat]
+        H[Lihat Laporan]
+    end
+
+    subgraph System["Sistem/Aplikasi"]
+        direction TB
+        X[Proses<br/>Pendaftaran]
+        Y[Pendaftaran<br/>Tersimpan]
+        Z[RTKL<br/>Tersimpan]
+        V[Tracer<br/>Tersimpan]
+        W[Sertifikat<br/>Tersimpan]
+    end
+
+    A --> B
+    B --> C
+    C -->|Ya| D
+    C -->|Tidak| G
+    D -->|Pendaftaran Dikirim| X
+    X --> Y
+    Y -->|Pendaftaran Berhasil| E
+    E -->|RTKL Data| Z
+    Z --> F
+    F -->|Tracer Data| V
+    V --> G
+    G -->|Sertifikat| W
+    W --> H
+    H --> End

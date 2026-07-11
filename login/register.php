@@ -22,8 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $role         = $_POST['role'];
     $nik          = mysqli_real_escape_string($koneksi, $_POST['nik'] ?? '');
     $tempat_lahir = mysqli_real_escape_string($koneksi, $_POST['tempat_lahir'] ?? '');
-    $tgl_lahir    = $_POST['tanggal_lahir'] ?? '';
-    $jk           = $_POST['jenis_kelamin'] ?? '';
+    $tgl_lahir    = mysqli_real_escape_string($koneksi, $_POST['tanggal_lahir'] ?? '');
+    $jk           = mysqli_real_escape_string($koneksi, $_POST['jenis_kelamin'] ?? '');
     $alamat       = mysqli_real_escape_string($koneksi, $_POST['alamat'] ?? '');
     $telepon      = mysqli_real_escape_string($koneksi, $_POST['telepon'] ?? '');
 

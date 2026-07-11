@@ -46,7 +46,8 @@ $data = mysqli_query($koneksi, "
             <?php endif; ?>
           </td>
           <td>
-            <a href="alumni_detail.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+            <a href="alumni_detail.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-outline-primary me-1"><i class="bi bi-eye"></i></a>
+            <a href="alumni_edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a>
           </td>
         </tr>
       <?php endwhile; ?>

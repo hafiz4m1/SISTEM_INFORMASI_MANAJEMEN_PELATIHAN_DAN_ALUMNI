@@ -50,11 +50,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
     $name  = mysqli_real_escape_string($koneksi, $_POST['name']);
     $email = mysqli_real_escape_string($koneksi, $_POST['email']);
     $pass  = $_POST['password'];
-    $role  = $_POST['role'];
+    $role  = mysqli_real_escape_string($koneksi, $_POST['role']);
 
     if (!$name)  $errors[] = 'Nama wajib diisi.';
     if (!$email) $errors[] = 'Email wajib diisi.';
     if (!$pass || strlen($pass) < 6) $errors[] = 'Password minimal 6 karakter.';
+    if (!in_array($role, ['admin','instruktur','alumni','kepala','peserta'])) $errors[] = 'Role tidak valid.';
 
     $cek = mysqli_fetch_row(mysqli_query($koneksi, "SELECT COUNT(*) FROM users WHERE email='$email'"))[0];
     if ($cek > 0) $errors[] = 'Email sudah terdaftar.';

@@ -14,12 +14,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama      = mysqli_real_escape_string($koneksi, $_POST['nama_pelatihan']);
     $jenis     = mysqli_real_escape_string($koneksi, $_POST['jenis']);
     $desc      = mysqli_real_escape_string($koneksi, $_POST['deskripsi']);
-    $tgl_mulai = $_POST['tanggal_mulai'];
-    $tgl_akhir = $_POST['tanggal_selesai'];
+    $tgl_mulai = mysqli_real_escape_string($koneksi, $_POST['tanggal_mulai']);
+    $tgl_akhir = mysqli_real_escape_string($koneksi, $_POST['tanggal_selesai']);
     $kuota     = (int)$_POST['kuota'];
     $instr_id  = (int)$_POST['instruktur_id'];
     $lokasi    = mysqli_real_escape_string($koneksi, $_POST['lokasi']);
-    $status    = $_POST['status'];
+    $status    = mysqli_real_escape_string($koneksi, $_POST['status']);
 
     if (!$nama) $errors[] = 'Nama pelatihan wajib diisi.';
     if ($tgl_akhir < $tgl_mulai) $errors[] = 'Tanggal selesai tidak boleh sebelum tanggal mulai.';
@@ -64,15 +64,15 @@ $instruktur = mysqli_query($koneksi, "SELECT i.id, u.name FROM instruktur i JOIN
         </div>
         <div class="col-md-4">
           <label class="form-label fw-semibold">Tanggal Mulai</label>
-          <input type="date" name="tanggal_mulai" class="form-control" value="<?= $data['tanggal_mulai'] ?>" required>
+          <input type="date" name="tanggal_mulai" class="form-control" value="<?= htmlspecialchars($data['tanggal_mulai']) ?>" required>
         </div>
         <div class="col-md-4">
           <label class="form-label fw-semibold">Tanggal Selesai</label>
-          <input type="date" name="tanggal_selesai" class="form-control" value="<?= $data['tanggal_selesai'] ?>" required>
+          <input type="date" name="tanggal_selesai" class="form-control" value="<?= htmlspecialchars($data['tanggal_selesai']) ?>" required>
         </div>
         <div class="col-md-4">
           <label class="form-label fw-semibold">Kuota</label>
-          <input type="number" name="kuota" class="form-control" value="<?= $data['kuota'] ?>" min="1" required>
+          <input type="number" name="kuota" class="form-control" value="<?= (int)$data['kuota'] ?>" min="1" required>
         </div>
         <div class="col-md-6">
           <label class="form-label fw-semibold">Instruktur</label>

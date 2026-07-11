@@ -1,12 +1,35 @@
 flowchart TD
-    A([Mulai]) --> B[Kepala membuka halaman login]
-    B --> C{Login berhasil?}
-    C -- Ya --> D[Masuk dashboard kepala]
-    C -- Tidak --> E[Tampilkan pesan error]
-    E --> B
-    D --> F[Melihat ringkasan pelatihan dan alumni]
-    F --> G[Memonitor laporan dan pengesahan]
-    G --> H[Meninjau rekomendasi dan tracer]
-    H --> I[Menetapkan keputusan terkait pelatihan]
-    I --> J[Logout]
-    J --> K([Selesai])
+    Start([Mulai])
+    
+    subgraph Kepala["Kepala"]
+        direction TB
+        A[Login]
+        B[Review Laporan<br/>Pelatihan]
+        C[Ubah Status<br/>Laporan Proses]
+        D[Review<br/>Pengesahan Laporan]
+        E[Lihat Rekomendasi<br/>& Tracer]
+        F[Lihat Hasil Kerja<br/>Alumni]
+    end
+    
+    subgraph System["Sistem/Aplikasi"]
+        direction TB
+        X[Mengecek<br/>Ketersediaan Laporan]
+        Y[Data Laporan<br/>Tidak Valid]
+        Z[Status Laporan<br/>Diperbarui]
+        W[Melihat Surat Tugas<br/>Selesai]
+    end
+    
+    End([Selesai])
+    
+    Start --> A
+    A --> B
+    B -->|Laporan Valid?| X
+    X -->|Data Tidak Valid| Y
+    Y -->|Review Ulang| B
+    X -->|Laporan Valid| C
+    C -->|Status Update| Z
+    Z -->|Sudah Ada| W
+    W --> D
+    D --> E
+    E --> F
+    F --> End

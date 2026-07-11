@@ -1,13 +1,40 @@
 flowchart TD
-    A([Mulai]) --> B[Admin membuka halaman login]
-    B --> C{Login berhasil?}
-    C -- Ya --> D[Masuk dashboard admin]
-    C -- Tidak --> E[Tampilkan pesan error]
-    E --> B
-    D --> F[Kelola data alumni]
-    F --> G[Verifikasi pendaftaran]
-    G --> H[Kelola data pelatihan]
-    H --> I[Atur RKTL, rekomendasi, dan tracer]
-    I --> J[Cetak laporan]
-    J --> K[Logout]
-    K --> L([Selesai])
+    Start([Mulai])
+    
+    subgraph Admin["Admin"]
+        direction TB
+        A[Login]
+        B[Lihat Dashboard]
+        C[Verifikasi<br/>Pendaftaran]
+        D[Kelola<br/>Pelatihan]
+        E[Kelola<br/>Peserta]
+        F[Lihat Laporan]
+        G[Logout]
+    end
+    
+    subgraph System["Sistem/Aplikasi"]
+        direction TB
+        X[Autentikasi<br/>Login]
+        Y[Tampilkan<br/>Dashboard]
+        Z[Data Verifikasi<br/>Tersimpan]
+        W[Data Pelatihan<br/>Tersimpan]
+        V[Data Peserta<br/>Tersimpan]
+        U[Laporan<br/>Tersedia]
+    end
+    
+    End([Selesai])
+    
+    Start --> A
+    A -->|Login Data| X
+    X -->|Login Berhasil| Y
+    Y --> B
+    B --> C
+    C -->|Verifikasi Data| Z
+    Z -->|Verifikasi Selesai| D
+    D -->|Update Data| W
+    W -->|Update Selesai| E
+    E -->|Ubah Data| V
+    V -->|Update Selesai| F
+    F -->|Request Laporan| U
+    U -->|Laporan Tersimpan| G
+    G --> End

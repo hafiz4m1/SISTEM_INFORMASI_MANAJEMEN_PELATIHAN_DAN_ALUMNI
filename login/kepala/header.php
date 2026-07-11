@@ -80,7 +80,6 @@ if ($cek_tabel && mysqli_num_rows($cek_tabel) > 0) {
     <small><?= htmlspecialchars($kepala_data['nip'] ?? '') ?></small><br>
     <span class="jabatan">Kepala Balai</span>
   </div>
-  <div class="nav-label">Menu</div>
   <a href="index.php" class="nav-link <?= $current==='index.php'?'active':'' ?>">
     <i class="bi bi-speedometer2"></i> Dashboard
   </a>
@@ -93,7 +92,6 @@ if ($cek_tabel && mysqli_num_rows($cek_tabel) > 0) {
       <span class="badge bg-danger ms-auto"><?= $jml_menunggu ?></span>
     <?php endif; ?>
   </a>
-  <div class="nav-label">Akun</div>
   <a href="profil.php" class="nav-link <?= $current==='profil.php'?'active':'' ?>">
     <i class="bi bi-person-badge"></i> Profil Jabatan
   </a>

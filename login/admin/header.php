@@ -83,7 +83,6 @@ include_once '../security.php';
     <small>BPPMDDTT Banjarmasin</small>
   </div>
   <div id="sidebar-menu">
-  <div class="nav-label">Menu Utama</div>
   <a href="index.php" class="nav-link <?= $current==='index.php' ? 'active' : '' ?>"><i class="bi bi-speedometer2"></i> Dashboard</a>
   <a href="pelatihan.php" class="nav-link <?= in_array($current,['pelatihan.php','pelatihan_add.php','pelatihan_edit.php']) ? 'active' : '' ?>"><i class="bi bi-journal-bookmark"></i> Pelatihan</a>
   <a href="verifikasi_pendaftaran.php" class="nav-link <?= $current==='verifikasi_pendaftaran.php'?'active':'' ?>">
@@ -97,11 +96,10 @@ include_once '../security.php';
   <a href="kepala.php" class="nav-link <?= $current==='kepala.php'?'active':'' ?>"><i class="bi bi-person-badge"></i> Kepala Balai</a>
   <a href="alumni.php" class="nav-link <?= in_array($current,['alumni.php','alumni_detail.php']) ? 'active' : '' ?>"><i class="bi bi-mortarboard"></i> Alumni</a>
   <a href="peserta.php" class="nav-link <?= $current==='peserta.php' ? 'active' : '' ?>"><i class="bi bi-people"></i> Peserta</a>
-  <div class="nav-label">Fitur Lanjutan</div><a href="laporan.php" class="nav-link <?= $current==='laporan.php'?'active':'' ?>"><i class="bi bi-file-earmark-bar-graph"></i> Laporan</a>
+  <a href="laporan.php" class="nav-link <?= $current==='laporan.php'?'active':'' ?>"><i class="bi bi-file-earmark-bar-graph"></i> Laporan</a>
   <a href="rktl.php" class="nav-link <?= $current==='rktl.php'?'active':'' ?>"><i class="bi bi-clipboard2-check"></i> Monitoring RKTL</a>
   <a href="tracer.php" class="nav-link <?= $current==='tracer.php' ? 'active' : '' ?>"><i class="bi bi-clipboard-data"></i> Tracer Study</a>
   <a href="rekomendasi.php" class="nav-link <?= $current==='rekomendasi.php' ? 'active' : '' ?>"><i class="bi bi-stars"></i> Rekomendasi</a>
-  <div class="nav-label">Pengaturan</div>
   <a href="user.php" class="nav-link <?= $current==='user.php' ? 'active' : '' ?>"><i class="bi bi-person-gear"></i> Manajemen User</a>
   <a href="../ganti_password.php" class="nav-link"><i class="bi bi-shield-lock"></i> Ganti Password</a>
   </div><!-- end sidebar-menu -->

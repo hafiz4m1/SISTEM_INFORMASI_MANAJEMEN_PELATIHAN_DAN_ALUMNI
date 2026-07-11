@@ -81,6 +81,7 @@ if (isset($_GET['aksi']) && isset($_GET['id'])) {
 }
 
 $filter = isset($_GET['filter']) ? $_GET['filter'] : 'menunggu';
+if (!in_array($filter, ['menunggu','diterima','ditolak','semua'])) $filter = 'menunggu';
 $where  = $filter !== 'semua' ? "WHERE pp.status_verifikasi='$filter'" : '';
 
 $data = mysqli_query($koneksi, "

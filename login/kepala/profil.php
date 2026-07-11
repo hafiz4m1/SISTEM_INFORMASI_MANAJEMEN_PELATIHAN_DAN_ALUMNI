@@ -5,6 +5,11 @@ include 'header.php';
 $pesan  = isset($_GET['pesan']) ? $_GET['pesan'] : '';
 $errors = [];
 
+$checkFotoColumn = mysqli_query($koneksi, "SHOW COLUMNS FROM kepala LIKE 'foto'");
+if (!$checkFotoColumn || mysqli_num_rows($checkFotoColumn) === 0) {
+    mysqli_query($koneksi, "ALTER TABLE kepala ADD COLUMN foto varchar(255) DEFAULT NULL");
+}
+
 // Proses update profil
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan_profil'])) {
     $nip          = mysqli_real_escape_string($koneksi, $_POST['nip']);
@@ -12,14 +17,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan_profil'])) {
     $jabatan      = mysqli_real_escape_string($koneksi, $_POST['jabatan']);
     $pangkat      = mysqli_real_escape_string($koneksi, $_POST['pangkat']);
     $golongan     = mysqli_real_escape_string($koneksi, $_POST['golongan']);
-    $mulai        = $_POST['mulai_jabatan'];
+    $mulai        = mysqli_real_escape_string($koneksi, $_POST['mulai_jabatan']);
+    
+    $foto_lama = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT foto FROM kepala WHERE user_id={$_SESSION['id_login']}"))['foto'] ?? '';
+    $foto_baru = $foto_lama;
+
+    if (!empty($_FILES['foto']['name'])) {
+        $upload_errors = validasiUpload($_FILES['foto'], ['jpg','jpeg','png'], 2);
+        if (empty($upload_errors)) {
+            $ext = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
+            $uploadDir = __DIR__ . '/../assets/images/profiles';
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+            $filename = time() . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
+            $target = $uploadDir . '/' . $filename;
+            if (move_uploaded_file($_FILES['foto']['tmp_name'], $target)) {
+                if ($foto_lama && file_exists($uploadDir . '/' . $foto_lama)) {
+                    @unlink($uploadDir . '/' . $foto_lama);
+                }
+                $foto_baru = $filename;
+            } else {
+                $errors[] = 'Gagal menyimpan foto profil.';
+            }
+        } else {
+            $errors = array_merge($errors, $upload_errors);
+        }
+    }
 
     if (!$nama_lengkap) $errors[] = 'Nama lengkap wajib diisi.';
 
     if (!$errors) {
         mysqli_query($koneksi, "UPDATE kepala SET
             nip='$nip', nama_lengkap='$nama_lengkap', jabatan='$jabatan',
-            pangkat='$pangkat', golongan='$golongan', mulai_jabatan='$mulai'
+            pangkat='$pangkat', golongan='$golongan', mulai_jabatan='$mulai', foto='$foto_baru'
             WHERE user_id={$_SESSION['id_login']}");
         mysqli_query($koneksi, "UPDATE users SET name='$nama_lengkap' WHERE id={$_SESSION['id_login']}");
         $_SESSION['nama'] = $_POST['nama_lengkap'];
@@ -74,9 +104,13 @@ $kepala = mysqli_fetch_assoc(mysqli_query($koneksi,
   <div class="col-lg-3">
     <div class="card p-4 text-center">
       <div class="mb-3">
-        <div style="width:80px;height:80px;background:#e8eef5;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:34px;color:#1a2942">
-          <i class="bi bi-person-badge"></i>
-        </div>
+        <?php if (!empty($kepala['foto']) && file_exists(__DIR__ . '/../assets/images/profiles/' . $kepala['foto'])): ?>
+          <img src="../assets/images/profiles/<?= e($kepala['foto']) ?>" alt="Foto Profil" style="width:80px;height:80px;border-radius:50%;object-fit:cover;display:block;margin:0 auto;">
+        <?php else: ?>
+          <div style="width:80px;height:80px;background:#e8eef5;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:34px;color:#1a2942">
+            <i class="bi bi-person-badge"></i>
+          </div>
+        <?php endif; ?>
       </div>
       <h6 class="fw-bold mb-1"><?= htmlspecialchars($kepala['nama_lengkap'] ?? $_SESSION['nama']) ?></h6>
       <small class="text-muted"><?= htmlspecialchars($kepala['email'] ?? '') ?></small>
@@ -115,7 +149,7 @@ $kepala = mysqli_fetch_assoc(mysqli_query($koneksi,
       <div class="card-body p-4">
 
         <?php if ($tab === 'profil'): ?>
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
           <div class="row g-3">
             <div class="col-12">
               <label class="form-label fw-semibold" style="font-size:13px">Nama Lengkap <span class="text-danger">*</span></label>
@@ -130,7 +164,7 @@ $kepala = mysqli_fetch_assoc(mysqli_query($koneksi,
             <div class="col-md-6">
               <label class="form-label fw-semibold" style="font-size:13px">Mulai Menjabat</label>
               <input type="date" name="mulai_jabatan" class="form-control"
-                     value="<?= $kepala['mulai_jabatan'] ?? '' ?>">
+                     value="<?= htmlspecialchars($kepala['mulai_jabatan'] ?? '') ?>">
             </div>
             <div class="col-12">
               <label class="form-label fw-semibold" style="font-size:13px">Jabatan</label>
@@ -154,6 +188,11 @@ $kepala = mysqli_fetch_assoc(mysqli_query($koneksi,
               <input type="email" class="form-control bg-light"
                      value="<?= htmlspecialchars($kepala['email'] ?? '') ?>" disabled>
               <small class="text-muted">Email tidak dapat diubah.</small>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold" style="font-size:13px">Foto Profil</label>
+              <input type="file" name="foto" class="form-control" accept="image/png,image/jpeg">
+              <small class="text-muted">JPEG/PNG maksimal 2MB. Kosongkan jika tidak ingin mengganti.</small>
             </div>
             <div class="col-12">
               <button type="submit" name="simpan_profil" class="btn btn-primary px-4">

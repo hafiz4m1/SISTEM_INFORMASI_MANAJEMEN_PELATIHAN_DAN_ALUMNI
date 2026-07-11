@@ -1,35 +1,58 @@
 sequenceDiagram
-    participant Admin
-    participant Browser
-    participant Server
-    participant LoginController as LoginController
-    participant Database as Database
-    participant AdminDashboard as Admin Dashboard
-    participant ReportPage as Laporan Cetak
+    %% Admin sequence diagram
+    title Diagram Urutan - Admin
+    autonumber
+    participant Admin as Admin
+    participant HalamanLogin as Halaman Login
+    participant HalamanDashboard as Halaman Dashboard
+    participant HalamanPelatihan as Halaman Pelatihan
+    participant HalamanVerifikasi as Verifikasi Pendaftaran
+    participant HalamanKepala as Kepala Balai
+    participant HalamanAlumni as Alumni
+    participant HalamanPeserta as Peserta
+    participant HalamanLaporan as Laporan
+    participant HalamanMonitoring as Monitoring RTKL
+    participant HalamanTracer as Tracer Study
+    participant HalamanRekomendasi as Rekomendasi Pelatihan
+    participant HalamanUser as Manajemen User
+    participant HalamanGantiPassword as Ganti Password Admin
 
-    Admin ->> Browser: buka /login/login.php
-    Browser ->> Server: GET login page
-    Server -->> Browser: tampilkan form login
-    Admin ->> Browser: submit email/password
-    Browser ->> Server: POST login request
-    Server ->> LoginController: autentikasi user
-    LoginController ->> Database: SELECT user WHERE email AND is_active
-    Database -->> LoginController: user record
-    LoginController ->> LoginController: validasi password + rate limit
-    alt Login sukses
-        LoginController ->> Server: set session dan redirect
-        Server -->> Browser: redirect ke /login/admin/index.php
-        Browser ->> Server: GET /login/admin/index.php
-        Server ->> AdminDashboard: jalankan dashboard admin
-        AdminDashboard ->> Database: ambil statistik pelatihan, alumni, tracer, kelulusan, rktl
-        Database -->> AdminDashboard: data ringkasan
-        AdminDashboard -->> Browser: tampilkan dashboard admin
-        Admin ->> Browser: pilih menu laporan
-        Browser ->> Server: GET /login/admin/laporan_cetak.php?jenis=...
-        Server ->> ReportPage: jalankan laporan_cetak.php
-        ReportPage ->> Database: query dataset laporan
-        Database -->> ReportPage: baris laporan
-        ReportPage -->> Browser: tampilkan laporan lengkap dengan total
-    else Login gagal
-        LoginController -->> Browser: tampilkan pesan error
-    end
+    Admin ->> HalamanLogin: Login ke sistem
+    HalamanLogin ->> HalamanLogin: Autentikasi berhasil
+    HalamanLogin ->> Admin: Konfirmasi login
+    Admin ->> HalamanDashboard: Buka menu utama Dashboard
+    HalamanDashboard ->> Admin: Tampilkan ringkasan utama
+    Admin ->> HalamanPelatihan: Buka menu Pelatihan
+    HalamanPelatihan ->> HalamanPelatihan: Tampilkan daftar pelatihan
+    HalamanPelatihan ->> Admin: Daftar pelatihan terlihat
+    Admin ->> HalamanVerifikasi: Buka menu Verifikasi Pendaftaran
+    HalamanVerifikasi ->> HalamanVerifikasi: Tampilkan daftar pendaftar
+    HalamanVerifikasi ->> Admin: Pendaftar terverifikasi
+    Admin ->> HalamanKepala: Buka menu Kepala Balai
+    HalamanKepala ->> HalamanKepala: Tampilkan data kepala balai
+    HalamanKepala ->> Admin: Data kepala balai tersedia
+    Admin ->> HalamanAlumni: Buka menu Alumni
+    HalamanAlumni ->> HalamanAlumni: Tampilkan data alumni
+    HalamanAlumni ->> Admin: Data alumni tersedia
+    Admin ->> HalamanPeserta: Buka menu Peserta
+    HalamanPeserta ->> HalamanPeserta: Tampilkan data peserta
+    HalamanPeserta ->> Admin: Data peserta tersedia
+    Admin ->> HalamanLaporan: Buka menu Laporan
+    HalamanLaporan ->> HalamanLaporan: Tampilkan laporan pelatihan, peserta, alumni, tracer study, RTKL, rekomendasi pelatihan, kelulusan
+    HalamanLaporan ->> Admin: Laporan tersedia
+    Admin ->> HalamanMonitoring: Buka menu Monitoring RTKL
+    HalamanMonitoring ->> HalamanMonitoring: Tampilkan monitoring RTKL
+    HalamanMonitoring ->> Admin: Status RTKL tersedia
+    Admin ->> HalamanTracer: Buka menu Tracer Study
+    HalamanTracer ->> HalamanTracer: Tampilkan tracer study
+    HalamanTracer ->> Admin: Hasil tracer study tersedia
+    Admin ->> HalamanRekomendasi: Buka menu Rekomendasi Pelatihan
+    HalamanRekomendasi ->> HalamanRekomendasi: Tampilkan rekomendasi pelatihan
+    HalamanRekomendasi ->> Admin: Rekomendasi tersedia
+    Admin ->> HalamanUser: Buka menu Manajemen User
+    HalamanUser ->> HalamanUser: Tampilkan daftar pengguna
+    HalamanUser ->> Admin: Pengguna tersedia
+    Admin ->> HalamanGantiPassword: Buka menu Ganti Password Admin
+    HalamanGantiPassword ->> HalamanGantiPassword: Form ganti password/admin
+    HalamanGantiPassword ->> Admin: Konfirmasi penggantian kata sandi
+    Admin ->> HalamanLogin: Logout

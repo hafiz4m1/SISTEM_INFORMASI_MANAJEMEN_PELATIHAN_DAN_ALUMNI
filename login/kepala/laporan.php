@@ -4,6 +4,8 @@ include 'header.php';
 
 $tgl_dari   = isset($_GET['dari'])   ? $_GET['dari']   : date('Y-01-01');
 $tgl_sampai = isset($_GET['sampai']) ? $_GET['sampai'] : date('Y-m-d');
+if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $tgl_dari))   $tgl_dari   = date('Y-01-01');
+if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $tgl_sampai)) $tgl_sampai = date('Y-m-d');
 $jenis      = isset($_GET['jenis'])  ? $_GET['jenis']  : 'pelatihan';
 
 $tabs = [

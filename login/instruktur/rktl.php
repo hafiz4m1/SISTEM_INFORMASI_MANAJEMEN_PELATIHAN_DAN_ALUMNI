@@ -8,7 +8,7 @@ include 'header.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $rktl_id        = (int)$_POST['rktl_id'];
     $rencana        = mysqli_real_escape_string($koneksi, $_POST['rencana']);
-    $target_waktu   = $_POST['target_waktu'];
+    $target_waktu   = mysqli_real_escape_string($koneksi, $_POST['target_waktu']);
     $progres        = (int)$_POST['progres'];
     $status         = mysqli_real_escape_string($koneksi, $_POST['status']);
     $catatan        = mysqli_real_escape_string($koneksi, $_POST['catatan']);

@@ -67,7 +67,6 @@ $alumni_id = $alumni['id'] ?? 0;
     <h6>Portal Alumni</h6>
     <small>BPPMDDTT Banjarmasin</small>
   </div>
-  <div class="nav-label">Menu</div>
   <a href="index.php" class="nav-link <?= $current==='index.php'?'active':'' ?>"><i class="bi bi-speedometer2"></i> Dashboard</a>
   <a href="profile.php" class="nav-link <?= $current==='profile.php'?'active':'' ?>"><i class="bi bi-person-circle"></i> Profil Saya</a>
   <a href="pelatihan.php" class="nav-link <?= $current==='pelatihan.php'?'active':'' ?>"><i class="bi bi-journal-bookmark"></i> Pelatihan</a>
@@ -76,7 +75,6 @@ $alumni_id = $alumni['id'] ?? 0;
   <a href="tracer.php" class="nav-link <?= $current==='tracer.php'?'active':'' ?>"><i class="bi bi-clipboard-data"></i> Tracer Study</a>
   <a href="sertifikat.php" class="nav-link <?= $current==='sertifikat.php'?'active':'' ?>"><i class="bi bi-award"></i> Sertifikat</a>
   <a href="rekomendasi.php" class="nav-link <?= $current==='rekomendasi.php'?'active':'' ?>"><i class="bi bi-stars"></i> Rekomendasi</a>
-  <div class="nav-label">Pengaturan</div>
   <a href="../ganti_password.php" class="nav-link"><i class="bi bi-shield-lock"></i> Ganti Password</a>
   <div class="sidebar-footer">
     <a href="../logout.php"><i class="bi bi-box-arrow-left"></i> Keluar</a>
