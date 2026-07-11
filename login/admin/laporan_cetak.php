@@ -4,6 +4,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['level'] !== 'admin') {
     header("location: ../login.php"); exit;
 }
 include '../koneksi.php';
+include_once '../format_helper.php';
 // Ambil data kepala yang aktif untuk pengesahan laporan
 $kepala = [];
 $cek_tabel = mysqli_query($koneksi, "SHOW TABLES LIKE 'kepala'");
@@ -29,6 +30,35 @@ $judul_laporan = [
     'rekomendasi' => 'Laporan Rekomendasi Pelatihan',
     'kelulusan'   => 'Laporan Tingkat Kelulusan',
 ];
+
+// ============================================================
+// KONFIGURASI SORTING HASIL CETAK
+// ============================================================
+$sort_options = [
+    'pelatihan'   => ['tanggal_mulai'=>'Tanggal Mulai','nama_pelatihan'=>'Nama Pelatihan','jml_peserta'=>'Jumlah Peserta','jml_lulus'=>'Jumlah Lulus','rata_nilai'=>'Rata-rata Nilai'],
+    'peserta'     => ['tanggal_mulai'=>'Tanggal Pelatihan','nama_peserta'=>'Nama Peserta','nama_pelatihan'=>'Nama Pelatihan','status_lulus'=>'Status Kelulusan','nilai'=>'Nilai'],
+    'alumni'      => ['name'=>'Nama Alumni','jml_pelatihan'=>'Jumlah Pelatihan','status_pekerjaan'=>'Status Pekerjaan'],
+    'tracer'      => ['tanggal_isi'=>'Tanggal Isi','nama_alumni'=>'Nama Alumni','status_pekerjaan'=>'Status Pekerjaan','relevansi_pelatihan'=>'Relevansi'],
+    'rktl'        => ['tgl_pendampingan'=>'Tgl Pendampingan','nama_alumni'=>'Nama Alumni','progres'=>'Progres','status'=>'Status'],
+    'rekomendasi' => ['skor'=>'Skor','nama_alumni'=>'Nama Alumni','tanggal_mulai'=>'Tgl Mulai Pelatihan'],
+    'kelulusan'   => ['pct_lulus'=>'% Lulus','nama_pelatihan'=>'Nama Pelatihan','total_peserta'=>'Total Peserta','rata_nilai'=>'Rata-rata Nilai'],
+];
+$default_urut = [
+    'pelatihan'=>'tanggal_mulai', 'peserta'=>'tanggal_mulai', 'alumni'=>'name', 'tracer'=>'tanggal_isi',
+    'rktl'=>'tgl_pendampingan', 'rekomendasi'=>'skor', 'kelulusan'=>'pct_lulus',
+];
+$default_arah = [
+    'pelatihan'=>'asc', 'peserta'=>'asc', 'alumni'=>'asc', 'tracer'=>'desc',
+    'rktl'=>'asc', 'rekomendasi'=>'desc', 'kelulusan'=>'desc',
+];
+
+// Validasi whitelist supaya tidak bisa disusupi parameter aneh-aneh
+$urut = isset($_GET['urut']) ? $_GET['urut'] : ($default_urut[$jenis] ?? '');
+if (!isset($sort_options[$jenis][$urut])) $urut = $default_urut[$jenis] ?? '';
+
+$arah = isset($_GET['arah']) && in_array($_GET['arah'], ['asc','desc'])
+    ? $_GET['arah']
+    : ($default_arah[$jenis] ?? 'asc');
 
 // ============================================================
 // AMBIL DATA SESUAI JENIS
@@ -144,6 +174,20 @@ elseif ($jenis === 'kelulusan') {
 // Hitung total baris
 $rows = [];
 while ($r = mysqli_fetch_assoc($data)) $rows[] = $r;
+
+// Terapkan sorting hasil cetak sesuai pilihan toolbar
+if ($urut !== '' && $rows) {
+    usort($rows, function ($a, $b) use ($urut, $arah) {
+        $va = $a[$urut] ?? null;
+        $vb = $b[$urut] ?? null;
+        if (is_numeric($va) && is_numeric($vb)) {
+            $cmp = $va <=> $vb;
+        } else {
+            $cmp = strcasecmp((string)$va, (string)$vb);
+        }
+        return $arah === 'desc' ? -$cmp : $cmp;
+    });
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -185,6 +229,17 @@ while ($r = mysqli_fetch_assoc($data)) $rows[] = $r;
     .toolbar button:hover { background: #123570; }
     .toolbar a { color: rgba(255,255,255,.7); font-size: 13px; text-decoration: none; }
     .toolbar a:hover { color: #fff; }
+    .toolbar label { display: flex; align-items: center; gap: 6px; font-size: 13px; opacity: .9; }
+    .toolbar select {
+      padding: 6px 10px; border-radius: 6px; border: none; font-size: 12px;
+      background: #fff; color: #1a2942; cursor: pointer;
+    }
+    .toolbar .btn-arah {
+      background: #334467; color: #fff; border: none;
+      padding: 7px 14px; border-radius: 6px; font-size: 13px;
+      font-weight: 600; cursor: pointer; white-space: nowrap;
+    }
+    .toolbar .btn-arah:hover { background: #445888; }
 
     /* Halaman kertas */
     .halaman {
@@ -355,6 +410,19 @@ while ($r = mysqli_fetch_assoc($data)) $rows[] = $r;
 <div class="toolbar">
   <a href="laporan.php?tab=<?= $jenis ?>&dari=<?= $tgl_dari ?>&sampai=<?= $tgl_sampai ?>">&#8592; Kembali</a>
   <span><?= $judul_laporan[$jenis] ?> · <?= date('d M Y',strtotime($tgl_dari)) ?> s/d <?= date('d M Y',strtotime($tgl_sampai)) ?></span>
+  <?php if (!empty($sort_options[$jenis])): ?>
+  <label>
+    Urutkan:
+    <select id="selectUrut" onchange="gantiUrut()">
+      <?php foreach ($sort_options[$jenis] as $key => $label): ?>
+        <option value="<?= $key ?>" <?= $urut === $key ? 'selected' : '' ?>><?= $label ?></option>
+      <?php endforeach; ?>
+    </select>
+  </label>
+  <button type="button" class="btn-arah" onclick="gantiArah()">
+    <?= $arah === 'asc' ? '↑ A-Z / Terkecil' : '↓ Z-A / Terbesar' ?>
+  </button>
+  <?php endif; ?>
   <button onclick="window.print()">🖨️ Print / Save PDF</button>
 </div>
 
@@ -527,7 +595,7 @@ while ($r = mysqli_fetch_assoc($data)) $rows[] = $r;
         <td><?php $sp=['bekerja'=>'badge-success','wirausaha'=>'badge-info','belum_bekerja'=>'badge-warning','melanjutkan_studi'=>'badge-primary']; ?><span class="badge <?= $sp[$r['status_pekerjaan']]??'badge-secondary' ?>"><?= ucfirst(str_replace('_',' ',$r['status_pekerjaan']??'-')) ?></span></td>
         <td><?= htmlspecialchars($r['nama_perusahaan']??'-') ?></td>
         <td><?= htmlspecialchars($r['jabatan']??'-') ?></td>
-        <td><?= htmlspecialchars($r['gaji_range']??'-') ?></td>
+        <td><?= formatGajiRange($r['gaji_range']??null) ?></td>
         <td style="text-align:center"><?= $r['relevansi_pelatihan']??'-' ?>/5</td>
         <td style="text-align:center"><?= ($r['waktu_tunggu_kerja']??null) !== null ? $r['waktu_tunggu_kerja'].' bln' : '-' ?></td>
         <td><?= $r['tanggal_isi'] ? date('d/m/Y',strtotime($r['tanggal_isi'])) : '-' ?></td>
@@ -693,6 +761,24 @@ while ($r = mysqli_fetch_assoc($data)) $rows[] = $r;
   </div>
 
 </div><!-- end halaman -->
+
+<script>
+function buildUrutUrl(urut, arah) {
+  const params = new URLSearchParams(window.location.search);
+  params.set('urut', urut);
+  params.set('arah', arah);
+  return 'laporan_cetak.php?' + params.toString();
+}
+function gantiUrut() {
+  const urut = document.getElementById('selectUrut').value;
+  window.location.href = buildUrutUrl(urut, '<?= $arah ?>');
+}
+function gantiArah() {
+  const urut = document.getElementById('selectUrut').value;
+  const arahBaru = '<?= $arah ?>' === 'asc' ? 'desc' : 'asc';
+  window.location.href = buildUrutUrl(urut, arahBaru);
+}
+</script>
 
 </body>
 </html>

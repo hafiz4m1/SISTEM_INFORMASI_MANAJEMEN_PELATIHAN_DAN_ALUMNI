@@ -1,6 +1,7 @@
 <?php
 $page_title = 'Tracer Study';
 include 'header.php';
+include_once '../format_helper.php';
 
 $pesan = isset($_GET['pesan']) ? $_GET['pesan'] : '';
 
@@ -62,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tracer) {
         <div class="col-md-6"><span class="text-muted">Nama Perusahaan:</span><br><strong><?= htmlspecialchars($tracer['nama_perusahaan'] ?? '-') ?></strong></div>
         <div class="col-md-6"><span class="text-muted">Jabatan:</span><br><strong><?= htmlspecialchars($tracer['jabatan'] ?? '-') ?></strong></div>
         <div class="col-md-6"><span class="text-muted">Bidang Usaha:</span><br><strong><?= htmlspecialchars($tracer['bidang_usaha'] ?? '-') ?></strong></div>
-        <div class="col-md-4"><span class="text-muted">Range Gaji:</span><br><strong><?= htmlspecialchars($tracer['gaji_range'] ?? '-') ?></strong></div>
+        <div class="col-md-4"><span class="text-muted">Range Gaji:</span><br><strong><?= formatGajiRange($tracer['gaji_range'] ?? null) ?></strong></div>
         <div class="col-md-4"><span class="text-muted">Relevansi Pelatihan:</span><br>
           <strong><?= $tracer['relevansi_pelatihan'] ?? '-' ?>/5</strong>
           <?php for ($i=1; $i<=5; $i++): ?>

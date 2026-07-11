@@ -1,6 +1,7 @@
 <?php
 $page_title = 'Laporan';
 include 'header.php';
+include_once '../format_helper.php';
 
 // Filter tanggal
 $tgl_dari  = isset($_GET['dari'])  ? $_GET['dari']  : '2024-01-01';
@@ -338,7 +339,7 @@ $lap_lulus = mysqli_query($koneksi, "
             </td>
             <td><?= htmlspecialchars($r['nama_perusahaan']??'-') ?></td>
             <td><?= htmlspecialchars($r['jabatan']??'-') ?></td>
-            <td><?= htmlspecialchars($r['gaji_range']??'-') ?></td>
+            <td><?= formatGajiRange($r['gaji_range']??null) ?></td>
             <td>
               <?php for ($i=1;$i<=5;$i++) echo '<i class="bi bi-star'.($i<=($r['relevansi_pelatihan']??0)?'-fill text-warning':' text-muted').'" style="font-size:11px"></i>'; ?>
               <small><?= $r['relevansi_pelatihan']??'-' ?>/5</small>
