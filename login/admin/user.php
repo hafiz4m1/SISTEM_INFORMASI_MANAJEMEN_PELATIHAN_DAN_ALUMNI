@@ -21,16 +21,18 @@ if (isset($_GET['hapus'])) {
         mysqli_query($koneksi, "DELETE FROM instruktur WHERE user_id=$id");
         
         // Hapus user
-        $result = mysqli_query($koneksi, "DELETE FROM users WHERE id=$id");
-        
+        $result       = mysqli_query($koneksi, "DELETE FROM users WHERE id=$id");
+        $affected     = mysqli_affected_rows($koneksi); // simpan SEBELUM query lain
+        $delete_error = mysqli_error($koneksi);
+
         // Enable foreign key checks kembali
         mysqli_query($koneksi, "SET FOREIGN_KEY_CHECKS=1");
         
-        if ($result && mysqli_affected_rows($koneksi) > 0) {
+        if ($result && $affected > 0) {
             header("Location: user.php?pesan=User berhasil dihapus."); 
             exit;
         } else {
-            $pesan = 'Gagal menghapus user: ' . mysqli_error($koneksi);
+            $pesan = 'Gagal menghapus user: ' . $delete_error;
         }
     }
 }

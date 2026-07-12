@@ -1,14 +1,26 @@
 <?php
-
+/**
+ * index.php - Landing page yang disempurnakan
+ * Taruh di root sisinfoalumni/ (bukan di login/)
+ */
 session_start();
 
-
+// Redirect jika sudah login
 if (isset($_SESSION['logged_in'])) {
     $dash = ['admin'=>'admin','instruktur'=>'instruktur','alumni'=>'alumni','peserta'=>'peserta','kepala'=>'kepala'];
     header("location: login/" . ($dash[$_SESSION['level']] ?? 'peserta') . "/index.php"); exit;
 }
 
 include 'login/koneksi.php';
+if (file_exists(__DIR__ . '/login/avatar_helper.php')) {
+    include_once 'login/avatar_helper.php';
+}
+if (!function_exists('avatarSvg')) {
+    // Fallback ringan kalau avatar_helper.php belum ada di folder login/
+    function avatarSvg(string $name, int $size = 96, bool $rounded = true): string {
+        return '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#e9ecef;color:#9aa5b1;font-size:'.round($size*0.4).'px;border-radius:'.($rounded?'50%':'12px').'"><i class="bi bi-person"></i></div>';
+    }
+}
 
 // Statistik dengan error handling
 $total_pelatihan = 0;
@@ -36,6 +48,12 @@ if ($result) {
     $total_lulus = mysqli_fetch_row($result)[0];
 }
 
+$total_instruktur = 0;
+$result = mysqli_query($koneksi, "SELECT COUNT(*) FROM instruktur");
+if ($result) {
+    $total_instruktur = mysqli_fetch_row($result)[0];
+}
+
 // Pelatihan aktif
 $pelatihan = mysqli_query($koneksi, "
     SELECT p.*, ui.name as nama_instruktur,
@@ -50,14 +68,14 @@ $pelatihan = mysqli_query($koneksi, "
 // Sebaran alumni
 $sebaran_data = [];
 $q = mysqli_query($koneksi, "SELECT tempat_lahir as kota, COUNT(*) as jumlah FROM alumni WHERE tempat_lahir IS NOT NULL AND tempat_lahir!='' GROUP BY tempat_lahir ORDER BY jumlah DESC LIMIT 8");
-while ($r = mysqli_fetch_assoc($q)) $sebaran_data[] = $r;
+while ($q && ($r = mysqli_fetch_assoc($q))) $sebaran_data[] = $r;
 
 $kategori_data = [];
 $q2 = mysqli_query($koneksi, "SELECT p.jenis, COUNT(DISTINCT a.id) as jml FROM peserta_pelatihan pp JOIN pelatihan p ON pp.pelatihan_id=p.id JOIN alumni a ON a.user_id=pp.user_id WHERE p.jenis IS NOT NULL GROUP BY p.jenis ORDER BY jml DESC");
-while ($r = mysqli_fetch_assoc($q2)) $kategori_data[] = $r;
+while ($q2 && ($r = mysqli_fetch_assoc($q2))) $kategori_data[] = $r;
 
-$alumni_info = mysqli_query($koneksi, "SELECT a.id, u.name, COALESCE(a.tempat_lahir, a.alamat, '-') as asal, (SELECT COUNT(*) FROM peserta_pelatihan pp WHERE pp.user_id=a.user_id) as jml_pelatihan FROM alumni a JOIN users u ON a.user_id=u.id ORDER BY jml_pelatihan DESC LIMIT 3");
-$instruktur_info = mysqli_query($koneksi, "SELECT i.id, u.name, COALESCE(i.unit, u.email, '-') as asal, (SELECT COUNT(*) FROM pelatihan p WHERE p.instruktur_id=i.id) as jml_pelatihan, (SELECT COUNT(*) FROM peserta_pelatihan pp JOIN pelatihan p ON pp.pelatihan_id=p.id WHERE p.instruktur_id=i.id) as jml_peserta FROM instruktur i JOIN users u ON i.user_id=u.id ORDER BY jml_pelatihan DESC LIMIT 3");
+$alumni_info = mysqli_query($koneksi, "SELECT a.id, u.name, COALESCE(NULLIF(a.tempat_lahir, ''), 'Kalimantan Selatan') as asal, (SELECT COUNT(*) FROM peserta_pelatihan pp WHERE pp.user_id=a.user_id) as jml_pelatihan FROM alumni a JOIN users u ON a.user_id=u.id ORDER BY jml_pelatihan DESC LIMIT 3");
+$instruktur_info = mysqli_query($koneksi, "SELECT i.id, u.name, COALESCE(NULLIF(i.bidang_keahlian, ''), 'Instruktur BPPMDDTT') as asal, (SELECT COUNT(*) FROM pelatihan p WHERE p.instruktur_id=i.id) as jml_pelatihan, (SELECT COUNT(*) FROM peserta_pelatihan pp JOIN pelatihan p ON pp.pelatihan_id=p.id WHERE p.instruktur_id=i.id) as jml_peserta FROM instruktur i JOIN users u ON i.user_id=u.id ORDER BY jml_pelatihan DESC LIMIT 3");
 
 // Top pelatihan
 $top_pelatihan = mysqli_query($koneksi, "
@@ -80,6 +98,11 @@ $top_pelatihan = mysqli_query($koneksi, "
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Aplikasi Monitoring dan Manajemen Data Alumni, Pelatih | BPPMDDTT Banjarmasin</title>
   <meta name="description" content="Platform digital pengelolaan pelatihan, peserta, dan alumni BPPMDDTT Banjarmasin">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Aplikasi Monitoring dan Manajemen Data Alumni, Pelatih | BPPMDDTT Banjarmasin">
+  <meta property="og:description" content="Platform digital pengelolaan pelatihan, peserta, dan alumni BPPMDDTT Banjarmasin">
+  <meta property="og:image" content="login/assets/images/balai1.jpg">
+  <meta property="og:locale" content="id_ID">
   <link rel="shortcut icon" href="login/assets/images/favicon.ico">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
@@ -95,19 +118,6 @@ $top_pelatihan = mysqli_query($koneksi, "
     .navbar-brand span { opacity:.7; font-weight:400; }
     .navbar-logo { height:32px; object-fit:contain; margin-right:10px; opacity:.95; }
     .nav-btn { font-size:13px; border-radius:8px; padding:6px 20px; font-weight:600; }
-
-    /* Menu toggle button */
-    .btn-menu-toggle { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25);
-      color:#fff; border-radius:8px; width:40px; height:40px; display:flex;
-      align-items:center; justify-content:center; font-size:18px; transition:background .15s; }
-    .btn-menu-toggle:hover { background:rgba(255,255,255,.22); color:#fff; }
-
-    /* Offcanvas menu */
-    .offcanvas-header { border-bottom:1px solid #eef1f5; }
-    .navbar-nav-menu { list-style:none; padding:0; margin:0; }
-    .navbar-nav-menu li a { display:flex; align-items:center; padding:12px 8px; color:#1a2942;
-      text-decoration:none; font-weight:600; font-size:14.5px; border-radius:8px; transition:background .15s; }
-    .navbar-nav-menu li a:hover { background:#f4f6fb; color:var(--primary); }
 
     /* Hero */
     .hero { background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
@@ -151,6 +161,49 @@ $top_pelatihan = mysqli_query($koneksi, "
     .fitur-icon { width:52px; height:52px; border-radius:12px; display:flex;
       align-items:center; justify-content:center; font-size:24px; margin-bottom:14px; }
 
+    /* Tentang Kami */
+    .tentang-photo { position:relative; margin-bottom:34px; }
+    .tentang-photo img { width:100%; height:340px; object-fit:cover; border-radius:20px;
+      box-shadow:0 16px 36px rgba(26,76,142,.18); }
+    .tentang-float-card { position:absolute; bottom:-22px; left:24px; background:#fff;
+      border-radius:14px; padding:14px 20px; box-shadow:0 10px 26px rgba(0,0,0,.14);
+      display:flex; align-items:center; gap:12px; }
+    .tentang-float-card .ico { width:44px; height:44px; border-radius:10px; background:var(--primary);
+      color:#fff; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+    .tentang-float-card .val { font-size:18px; font-weight:800; color:#1a2942; line-height:1.1; }
+    .tentang-float-card .lbl { font-size:11px; color:#6b7280; }
+    .tentang-corner-badge { position:absolute; top:16px; right:16px; background:rgba(26,76,142,.92);
+      color:#fff; font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+      border-radius:20px; padding:6px 14px; backdrop-filter:blur(2px); }
+
+    .mini-stat-row { display:flex; gap:28px; margin:20px 0 24px; flex-wrap:wrap; }
+    .mini-stat .val { font-size:26px; font-weight:800; color:var(--primary); line-height:1; }
+    .mini-stat .lbl { font-size:12px; color:#6b7280; margin-top:3px; }
+
+    .visi-list { list-style:none; padding:0; margin:0 0 26px; }
+    .visi-list li { display:flex; align-items:flex-start; gap:10px; margin-bottom:10px;
+      font-size:13.5px; color:#374151; }
+    .visi-list li i { color:#1d9e75; font-size:16px; margin-top:2px; flex-shrink:0; }
+
+    .layanan-card { border:none; border-radius:14px; padding:24px 20px; height:100%;
+      background:#fff; box-shadow:0 2px 12px rgba(0,0,0,.06); transition:transform .2s, box-shadow .2s; }
+    .layanan-card:hover { transform:translateY(-4px); box-shadow:0 10px 26px rgba(0,0,0,.1); }
+    .layanan-num { font-size:11px; font-weight:800; color:#c3cedb; letter-spacing:.05em; margin-bottom:10px; }
+
+    /* Alumni & Pelatih Unggulan */
+    .unggulan-card { background:#fff; border-radius:14px; padding:16px; display:flex;
+      align-items:center; gap:14px; box-shadow:0 2px 12px rgba(0,0,0,.06); transition:transform .2s, box-shadow .2s; }
+    .unggulan-card:hover { transform:translateY(-3px); box-shadow:0 8px 22px rgba(0,0,0,.1); }
+    .unggulan-avatar { width:52px; height:52px; border-radius:50%; overflow:hidden; flex-shrink:0; background:#e9ecef; }
+    .unggulan-avatar img { width:100%; height:100%; object-fit:cover; }
+    .unggulan-name { font-weight:700; font-size:14px; color:#1a2942; margin-bottom:2px; }
+    .unggulan-asal { font-size:12px; color:#6b7280; }
+    .unggulan-badge { font-size:11px; font-weight:700; color:var(--primary); background:#eef2f7;
+      border-radius:20px; padding:3px 10px; white-space:nowrap; }
+    .unggulan-col-title { font-size:13px; font-weight:700; color:#1a2942; margin-bottom:14px;
+      display:flex; align-items:center; gap:8px; }
+    .unggulan-col-title i { color:var(--primary); font-size:16px; }
+
     /* Top 10 */
     .rank-num { width:28px; height:28px; border-radius:50%; display:inline-flex;
       align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
@@ -178,9 +231,12 @@ $top_pelatihan = mysqli_query($koneksi, "
     footer .footer-bottom { border-top:1px solid rgba(255,255,255,.1); margin-top:28px; padding-top:20px;
       font-size:12px; text-align:center; }
 
-    /* Scroll reveal */
-    .reveal { opacity:0; transform:translateY(20px); transition:all .6s ease; }
-    .reveal.visible { opacity:1; transform:none; }
+    /* Scroll reveal — konten SELALU tampil secara default (tidak bergantung JS/timing sama sekali).
+       Kelas .visible hanya menambah animasi geser halus kalau sempat ditambahkan oleh JS,
+       tapi kontennya sendiri tidak pernah disembunyikan. */
+    .reveal { opacity:1; transform:none; }
+    .reveal.pre-anim { opacity:0; transform:translateY(20px); }
+    .reveal.visible { opacity:1; transform:none; transition:all .6s ease; }
   </style>
 </head>
 <body>
@@ -193,33 +249,11 @@ $top_pelatihan = mysqli_query($koneksi, "
       <span>Monitoring Alumni &amp; Pelatih <span style="opacity:.6">· BPPMDDTT</span></span>
     </a>
     <div class="d-flex align-items-center gap-2 ms-auto">
-      <button class="btn btn-menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuUtama" aria-controls="menuUtama" aria-label="Buka menu">
-        <i class="bi bi-justify-right"></i>
-      </button>
+      <a href="login/login.php"    class="btn btn-outline-light nav-btn">Login</a>
+      <a href="login/register.php" class="btn btn-warning nav-btn">Daftar</a>
     </div>
   </div>
 </nav>
-
-<!-- Offcanvas Menu -->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="menuUtama" aria-labelledby="menuUtamaLabel">
-  <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="menuUtamaLabel">Menu</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Tutup"></button>
-  </div>
-  <div class="offcanvas-body d-flex flex-column">
-    <ul class="navbar-nav-menu mb-4">
-      <li><a href="#tentang" data-bs-dismiss="offcanvas"><i class="bi bi-info-circle me-2"></i>Tentang Kami</a></li>
-      <li><a href="#pelatihan" data-bs-dismiss="offcanvas"><i class="bi bi-journal-bookmark me-2"></i>Pelatihan</a></li>
-      <li><a href="login/Infoalumni_pelatih.php"><i class="bi bi-people me-2"></i>Alumni &amp; Pelatih</a></li>
-      <li><a href="#statistik" data-bs-dismiss="offcanvas"><i class="bi bi-bar-chart me-2"></i>Statistik</a></li>
-      <li><a href="#peringkat" data-bs-dismiss="offcanvas"><i class="bi bi-trophy me-2"></i>Peringkat Pelatihan</a></li>
-    </ul>
-    <div class="mt-auto d-flex flex-column gap-2">
-      <a href="login/login.php" class="btn btn-outline-primary">Login</a>
-      <a href="login/register.php" class="btn btn-primary">Daftar Sekarang</a>
-    </div>
-  </div>
-</div>
 
 <!-- Hero -->
 <section class="hero">
@@ -236,6 +270,9 @@ $top_pelatihan = mysqli_query($koneksi, "
         <div class="hero-btns d-flex gap-3 flex-wrap">
           <a href="login/daftar_pelatihan.php" class="btn btn-warning">
             <i class="bi bi-journal-bookmark me-1"></i> Lihat Pelatihan
+          </a>
+          <a href="login/Infoalumni_pelatih.php" class="btn btn-outline-light">
+            <i class="bi bi-people me-1"></i> Info Alumni &amp; Pelatih
           </a>
           <a href="login/register.php" class="btn btn-outline-light">
             <i class="bi bi-person-plus me-1"></i> Daftar Sekarang
@@ -277,39 +314,92 @@ $top_pelatihan = mysqli_query($koneksi, "
 <!-- Tentang -->
 <section id="tentang" class="py-5" style="background:#f4f6fb">
   <div class="container reveal">
-    <div class="row align-items-center g-5">
+    <div class="row align-items-start g-5">
       <div class="col-lg-6">
-        <div class="section-badge">Tentang Kami</div>
-        <h2 class="section-title">Balai Pelatihan dan Pemberdayaan Masyarakat Desa</h2>
-        <p class="section-sub mb-4">BPPMDDTT Banjarmasin adalah lembaga di bawah Kementerian Desa, PDT, dan Transmigrasi yang bertugas memberikan pelatihan kepada masyarakat desa, daerah tertinggal, dan transmigrasi di wilayah Kalimantan Selatan.</p>
-        <a href="https://bppmtbjm.my.canva.site/" target="_blank" class="btn btn-primary">
-          <i class="bi bi-box-arrow-up-right me-1"></i> Website Resmi
-        </a>
-      </div>
-      <div class="col-lg-6">
-        <div class="row g-3">
-          <?php
-          $fitur = [
-            ['bi-journal-bookmark','#e8f0fe','#1a4c8e','Manajemen Pelatihan','Kelola pelatihan, jadwal, instruktur secara terpusat.'],
-            ['bi-mortarboard','#e8f5e9','#1d9e75','Data Alumni','Pantau perkembangan alumni pasca pelatihan.'],
-            ['bi-clipboard-data','#fff8e1','#f59e0b','Tracer Study Otomatis','Kuesioner dikirim otomatis ke alumni.'],
-            ['bi-stars','#f0f4ff','#6366f1','Rekomendasi Cerdas','Rekomendasi pelatihan berbasis kompetensi.'],
-            ['bi-patch-check','#fdf2f8','#d946ef','RKTL & Pendampingan','Monitor rencana kerja tindak lanjut alumni.'],
-            ['bi-file-earmark-bar-graph','#fff1f2','#e11d48','Laporan Lengkap','7 jenis laporan dengan pengesahan kepala.'],
-          ];
-          foreach ($fitur as $f):
-          ?>
-          <div class="col-6">
-            <div class="fitur-card bg-white">
-              <div class="fitur-icon" style="background:<?= $f[1] ?>;color:<?= $f[2] ?>">
-                <i class="bi <?= $f[0] ?>"></i>
-              </div>
-              <div class="fw-semibold mb-1" style="font-size:13px"><?= $f[3] ?></div>
-              <div style="font-size:12px;color:#6b7280"><?= $f[4] ?></div>
+        <div class="tentang-photo">
+          <img src="assets/images/balai1.jpg" alt="Gedung BPPMDDTT Banjarmasin">
+          <span class="tentang-corner-badge"><i class="bi bi-geo-alt-fill me-1"></i>Banjarmasin</span>
+          <div class="tentang-float-card">
+            <div class="ico"><i class="bi bi-mortarboard"></i></div>
+            <div>
+              <div class="val"><?= number_format($total_alumni) ?>+</div>
+              <div class="lbl">Alumni Terdata</div>
             </div>
           </div>
-          <?php endforeach; ?>
         </div>
+      </div>
+      <div class="col-lg-6 pt-lg-2">
+        <div class="section-badge">Tentang Kami</div>
+        <h2 class="section-title">Mitra Pengembangan SDM Desa & Transmigrasi di Kalimantan Selatan</h2>
+        <p class="section-sub mb-0" style="max-width:100%">
+          Balai Pelatihan dan Pemberdayaan Masyarakat Desa, Daerah Tertinggal, dan Transmigrasi
+          (BPPMDDTT) Banjarmasin berada di bawah Kementerian Desa, Pembangunan Daerah Tertinggal,
+          dan Transmigrasi. Kami menyelenggarakan pelatihan berbasis kompetensi bagi aparatur desa,
+          kader masyarakat, dan calon transmigran, lalu memantau perkembangan alumni pasca pelatihan
+          melalui sistem digital ini — mulai dari tracer study, rencana kerja tindak lanjut (RKTL),
+          hingga rekomendasi pelatihan lanjutan.
+        </p>
+
+        <div class="mini-stat-row">
+          <div class="mini-stat">
+            <div class="val"><?= number_format($total_pelatihan) ?></div>
+            <div class="lbl">Pelatihan Terselenggara</div>
+          </div>
+          <div class="mini-stat">
+            <div class="val"><?= number_format($total_instruktur) ?></div>
+            <div class="lbl">Instruktur Aktif</div>
+          </div>
+          <div class="mini-stat">
+            <div class="val"><?= number_format($total_peserta) ?></div>
+            <div class="lbl">Peserta Terdaftar</div>
+          </div>
+        </div>
+
+        <ul class="visi-list">
+          <li><i class="bi bi-check-circle-fill"></i><span><strong>Visi:</strong> Menjadi balai pelatihan rujukan dalam pemberdayaan masyarakat desa, daerah tertinggal, dan transmigrasi di Kalimantan.</span></li>
+          <li><i class="bi bi-check-circle-fill"></i><span><strong>Misi:</strong> Menyelenggarakan pelatihan berbasis kompetensi serta mengawal alumni agar hasil pelatihan benar-benar diterapkan di lapangan.</span></li>
+        </ul>
+
+        <div class="d-flex gap-3 flex-wrap">
+          <a href="https://bppmtbjm.my.canva.site/" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+            <i class="bi bi-box-arrow-up-right me-1"></i> Website Resmi
+          </a>
+          <a href="#pelatihan" class="btn btn-outline-primary">
+            <i class="bi bi-journal-bookmark me-1"></i> Lihat Program Pelatihan
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Layanan / Fitur Sistem -->
+    <div class="mt-5 pt-3">
+      <div class="text-center mb-4">
+        <div class="section-badge">Layanan Kami</div>
+        <h2 class="section-title">Yang Bisa Anda Lakukan di Sistem Ini</h2>
+      </div>
+      <div class="row g-3">
+        <?php
+        $fitur = [
+          ['01','bi-journal-bookmark','#e8f0fe','#1a4c8e','Manajemen Pelatihan','Kelola jadwal, kuota, dan instruktur pelatihan secara terpusat dan real-time.'],
+          ['02','bi-mortarboard','#e8f5e9','#1d9e75','Data Alumni Digital','Rekam jejak setiap alumni tersimpan rapi, mulai dari kompetensi hingga riwayat pelatihan.'],
+          ['03','bi-clipboard-data','#fff8e1','#f59e0b','Tracer Study Otomatis','Kuesioner keterserapan kerja dikirim otomatis ke alumni untuk mengukur dampak pelatihan.'],
+          ['04','bi-stars','#f0f4ff','#6366f1','Rekomendasi Cerdas','Sistem menyarankan pelatihan lanjutan berdasarkan kompetensi yang sudah dimiliki alumni.'],
+          ['05','bi-patch-check','#fdf2f8','#d946ef','RKTL & Pendampingan','Pantau rencana kerja tindak lanjut alumni selama masa pendampingan pasca pelatihan.'],
+          ['06','bi-file-earmark-bar-graph','#fff1f2','#e11d48','Laporan & Pengesahan','Laporan lengkap disusun otomatis dan disahkan langsung oleh Kepala Balai.'],
+        ];
+        foreach ($fitur as $f):
+        ?>
+        <div class="col-md-6 col-lg-4">
+          <div class="layanan-card">
+            <div class="layanan-num"><?= $f[0] ?></div>
+            <div class="fitur-icon" style="background:<?= $f[2] ?>;color:<?= $f[3] ?>">
+              <i class="bi <?= $f[1] ?>"></i>
+            </div>
+            <div class="fw-semibold mb-1" style="font-size:14px"><?= $f[4] ?></div>
+            <div style="font-size:12.5px;color:#6b7280"><?= $f[5] ?></div>
+          </div>
+        </div>
+        <?php endforeach; ?>
       </div>
     </div>
   </div>
@@ -330,7 +420,7 @@ $top_pelatihan = mysqli_query($koneksi, "
     <div class="row g-3">
       <?php
       $count = 0;
-      while ($p = mysqli_fetch_assoc($pelatihan)): $count++;
+      while ($pelatihan && ($p = mysqli_fetch_assoc($pelatihan))): $count++;
       $sisa = $p['kuota'] - $p['jml_peserta'];
       ?>
       <div class="col-md-6 col-lg-4">
@@ -366,6 +456,69 @@ $top_pelatihan = mysqli_query($koneksi, "
           <p class="mt-2">Belum ada pelatihan aktif saat ini</p>
         </div>
       <?php endif; ?>
+    </div>
+  </div>
+</section>
+
+<!-- Alumni & Pelatih Unggulan -->
+<section class="py-5" style="background:#f4f6fb">
+  <div class="container reveal">
+    <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2">
+      <div>
+        <div class="section-badge">Alumni &amp; Pelatih</div>
+        <h2 class="section-title mb-0">Wajah di Balik Data</h2>
+      </div>
+      <a href="login/Infoalumni_pelatih.php" class="btn btn-outline-primary btn-sm">
+        Lihat Semua <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="unggulan-col-title"><i class="bi bi-mortarboard"></i> Alumni Paling Aktif</div>
+        <div class="d-flex flex-column gap-3">
+          <?php
+          $ada_alumni = false;
+          while ($alumni_info && ($a = mysqli_fetch_assoc($alumni_info))): $ada_alumni = true;
+          ?>
+          <a href="login/alumni_detail_publik.php?id=<?= (int)$a['id'] ?>" class="text-decoration-none">
+            <div class="unggulan-card">
+              <div class="unggulan-avatar"><?= avatarSvg($a['name'], 52, true) ?></div>
+              <div class="flex-grow-1">
+                <div class="unggulan-name"><?= htmlspecialchars($a['name']) ?></div>
+                <div class="unggulan-asal"><i class="bi bi-geo-alt me-1"></i><?= htmlspecialchars($a['asal']) ?></div>
+              </div>
+              <span class="unggulan-badge"><?= (int)$a['jml_pelatihan'] ?> Pelatihan</span>
+            </div>
+          </a>
+          <?php endwhile; ?>
+          <?php if (!$ada_alumni): ?>
+            <p class="text-muted mb-0" style="font-size:13px">Belum ada data alumni.</p>
+          <?php endif; ?>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="unggulan-col-title"><i class="bi bi-person-workspace"></i> Pelatih Paling Berpengalaman</div>
+        <div class="d-flex flex-column gap-3">
+          <?php
+          $ada_instruktur = false;
+          while ($instruktur_info && ($i = mysqli_fetch_assoc($instruktur_info))): $ada_instruktur = true;
+          ?>
+          <a href="login/pelatih_detail_publik.php?id=<?= (int)$i['id'] ?>" class="text-decoration-none">
+            <div class="unggulan-card">
+              <div class="unggulan-avatar"><?= avatarSvg($i['name'], 52, true) ?></div>
+              <div class="flex-grow-1">
+                <div class="unggulan-name"><?= htmlspecialchars($i['name']) ?></div>
+                <div class="unggulan-asal"><i class="bi bi-people me-1"></i><?= (int)$i['jml_peserta'] ?> peserta dibimbing</div>
+              </div>
+              <span class="unggulan-badge"><?= (int)$i['jml_pelatihan'] ?> Pelatihan</span>
+            </div>
+          </a>
+          <?php endwhile; ?>
+          <?php if (!$ada_instruktur): ?>
+            <p class="text-muted mb-0" style="font-size:13px">Belum ada data pelatih.</p>
+          <?php endif; ?>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -412,7 +565,7 @@ $top_pelatihan = mysqli_query($koneksi, "
           <tbody>
           <?php
           $no=1;
-          while ($row = mysqli_fetch_assoc($top_pelatihan)):
+          while ($top_pelatihan && ($row = mysqli_fetch_assoc($top_pelatihan))):
             $rc = $no===1?'rank-1':($no===2?'rank-2':($no===3?'rank-3':'rank-n'));
             $rel = $row['avg_relevansi'] ? round($row['avg_relevansi'],1) : null;
           ?>
@@ -463,7 +616,7 @@ $top_pelatihan = mysqli_query($koneksi, "
       <div class="col-md-5">
         <div class="footer-brand">Aplikasi Monitoring dan Manajemen Data Alumni, Pelatih</div>
         <p style="font-size:13px;margin-bottom:12px">BPPMDDTT Banjarmasin · Kementerian Desa, Pembangunan Daerah Tertinggal, dan Transmigrasi</p>
-        <a href="https://bppmddtt-banjarmasin.kemendesa.go.id/" target="_blank" style="font-size:12px">
+        <a href="https://bppmddtt-banjarmasin.kemendesa.go.id/" target="_blank" rel="noopener noreferrer" style="font-size:12px">
           <i class="bi bi-globe me-1"></i>bppmddtt-banjarmasin.kemendesa.go.id
         </a>
       </div>
@@ -493,34 +646,76 @@ $top_pelatihan = mysqli_query($koneksi, "
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-// Charts
-const colors = ['#1a4c8e','#1d9e75','#d85a30','#ba7517','#993556','#534ab7','#0f6e56','#639922'];
-const sebaranLabels = <?= json_encode(array_column($sebaran_data,'kota')) ?>;
-const sebaranData   = <?= json_encode(array_column($sebaran_data,'jumlah')) ?>;
-const kategoriLabels= <?= json_encode(array_column($kategori_data,'jenis')) ?>;
-const kategoriData  = <?= json_encode(array_column($kategori_data,'jml')) ?>;
+// Charts — dibungkus try/catch supaya kalau CDN Chart.js gagal dimuat / error,
+// tidak ikut menggagalkan skrip lain (scroll reveal) di bawahnya.
+try {
+  const colors = ['#1a4c8e','#1d9e75','#d85a30','#ba7517','#993556','#534ab7','#0f6e56','#639922'];
+  const sebaranLabels = <?= json_encode(array_column($sebaran_data,'kota')) ?>;
+  const sebaranData   = <?= json_encode(array_column($sebaran_data,'jumlah')) ?>;
+  const kategoriLabels= <?= json_encode(array_column($kategori_data,'jenis')) ?>;
+  const kategoriData  = <?= json_encode(array_column($kategori_data,'jml')) ?>;
 
-new Chart(document.getElementById('chartSebaran'), {
-  type:'bar',
-  data:{ labels:sebaranLabels.length?sebaranLabels:['Belum ada data'],
-    datasets:[{label:'Alumni',data:sebaranData.length?sebaranData:[0],backgroundColor:colors,borderRadius:6}]},
-  options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},
-    scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{display:false},ticks:{font:{size:11}}}}}
-});
+  if (typeof Chart !== 'undefined') {
+    const elSebaran  = document.getElementById('chartSebaran');
+    const elKategori = document.getElementById('chartKategori');
 
-new Chart(document.getElementById('chartKategori'), {
-  type:'doughnut',
-  data:{ labels:kategoriLabels.length?kategoriLabels:['Belum ada data'],
-    datasets:[{data:kategoriData.length?kategoriData:[1],backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},
-  options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:12}}},cutout:'65%'}
-});
+    if (elSebaran) {
+      new Chart(elSebaran, {
+        type:'bar',
+        data:{ labels:sebaranLabels.length?sebaranLabels:['Belum ada data'],
+          datasets:[{label:'Alumni',data:sebaranData.length?sebaranData:[0],backgroundColor:colors,borderRadius:6}]},
+        options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},
+          scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{display:false},ticks:{font:{size:11}}}}}
+      });
+    }
 
-// Scroll reveal
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-}, { threshold: 0.1 });
-document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    if (elKategori) {
+      new Chart(elKategori, {
+        type:'doughnut',
+        data:{ labels:kategoriLabels.length?kategoriLabels:['Belum ada data'],
+          datasets:[{data:kategoriData.length?kategoriData:[1],backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},
+        options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:12}}},cutout:'65%'}
+      });
+    }
+  } else {
+    console.warn('Chart.js gagal dimuat, grafik statistik dilewati.');
+  }
+} catch (err) {
+  console.error('Gagal membuat grafik:', err);
+}
+</script>
+
+<script>
+// Scroll reveal — animasi ini murni "bonus" tampilan. Konten sendiri SUDAH
+// terlihat dari awal lewat CSS (.reveal default opacity:1), jadi walau
+// baris di bawah ini gagal total, halaman tetap tampil normal.
+try {
+  const revealEls = document.querySelectorAll('.reveal');
+  revealEls.forEach(el => el.classList.add('pre-anim'));
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.remove('pre-anim');
+        e.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1 });
+  revealEls.forEach(el => observer.observe(el));
+
+  // Jaring pengaman tambahan: paksa tampil penuh setelah 1.5 detik.
+  setTimeout(() => revealEls.forEach(el => {
+    el.classList.remove('pre-anim');
+    el.classList.add('visible');
+  }), 1500);
+} catch (err) {
+  document.querySelectorAll('.reveal').forEach(el => {
+    el.classList.remove('pre-anim');
+    el.classList.add('visible');
+  });
+}
 </script>
 </body>
 </html>

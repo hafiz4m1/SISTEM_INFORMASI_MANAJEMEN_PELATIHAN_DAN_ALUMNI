@@ -188,6 +188,24 @@ if ($urut !== '' && $rows) {
         return $arah === 'desc' ? -$cmp : $cmp;
     });
 }
+
+// ============================================================
+// PAGINASI: BAGI DATA PER 7 BARIS PER HALAMAN
+// ============================================================
+$PER_HALAMAN = 7;
+$total_semua = count($rows);
+$total_hal   = $total_semua > 0 ? (int)ceil($total_semua / $PER_HALAMAN) : 1;
+
+// 0 = cetak semua halaman, N = hanya halaman N
+$hal_aktif = isset($_GET['hal']) ? max(1, min((int)$_GET['hal'], $total_hal)) : 0;
+
+// Bagi rows menjadi array of pages
+$pages = [];
+for ($h = 0; $h < $total_hal; $h++) {
+    $pages[] = array_slice($rows, $h * $PER_HALAMAN, $PER_HALAMAN);
+}
+$pages_cetak = ($hal_aktif > 0) ? [$pages[$hal_aktif - 1]] : $pages;
+$offset_awal = ($hal_aktif > 0) ? ($hal_aktif - 1) * $PER_HALAMAN : 0;
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -393,10 +411,43 @@ if ($urut !== '' && $rows) {
       color: #888;
     }
 
+    /* Wrapper semua halaman */
+    .semua-halaman { display: flex; flex-direction: column; gap: 32px; }
+
+    /* Pemisah antar halaman di layar */
+    .page-break-label {
+      max-width: 900px; margin: 0 auto;
+      text-align: center; font-size: 11px; color: #999;
+      padding: 6px; background: #ddd; border-radius: 4px;
+      letter-spacing: .5px;
+    }
+
+    /* Navigasi halaman (toolbar bawah) */
+    .nav-halaman {
+      max-width: 900px; margin: 0 auto 16px;
+      background: #1a2942; border-radius: 8px;
+      padding: 10px 16px;
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .nav-halaman span { color: rgba(255,255,255,.7); font-size: 12px; flex:1; }
+    .nav-halaman a {
+      display: inline-block; padding: 5px 12px;
+      border-radius: 5px; font-size: 12px; font-weight: 600;
+      color: #fff; background: #334467; text-decoration: none;
+    }
+    .nav-halaman a:hover { background: #445888; }
+    .nav-halaman a.aktif { background: #e67e22; }
+    .nav-halaman a.btn-semua { background: #1a4c8e; }
+    .nav-halaman a.btn-semua:hover { background: #123570; }
+
     /* ===== PRINT STYLES ===== */
     @media print {
       body { background: #fff; padding: 0; }
       .toolbar { display: none !important; }
+      .nav-halaman { display: none !important; }
+      .page-break-label { display: none !important; }
+      /* Setiap .halaman mulai di halaman baru kecuali yang pertama */
+      .halaman + .halaman { page-break-before: always; }
       .halaman { box-shadow: none; width: 100%; padding: 24px 32px; margin: 0; }
       @page { size: A4; margin: 1cm; }
       table { page-break-inside: auto; }
@@ -423,10 +474,35 @@ if ($urut !== '' && $rows) {
     <?= $arah === 'asc' ? '↑ A-Z / Terkecil' : '↓ Z-A / Terbesar' ?>
   </button>
   <?php endif; ?>
+  <span style="font-size:12px;background:#334467;padding:4px 10px;border-radius:5px;">
+    📄 <?= $total_semua ?> data · <?= $total_hal ?> halaman (7/hal)
+  </span>
   <button onclick="window.print()">🖨️ Print / Save PDF</button>
 </div>
 
-<!-- HALAMAN LAPORAN -->
+<!-- NAVIGASI HALAMAN -->
+<div class="nav-halaman">
+  <span>Lihat / Cetak halaman:</span>
+  <a href="?<?= http_build_query(array_merge($_GET, ['hal'=>0])) ?>"
+     class="btn-semua <?= $hal_aktif===0?'aktif':'' ?>">Semua (<?= $total_hal ?> hal)</a>
+  <?php for ($n=1; $n<=$total_hal; $n++): ?>
+  <a href="?<?= http_build_query(array_merge($_GET, ['hal'=>$n])) ?>"
+     class="<?= $hal_aktif===$n?'aktif':'' ?>">Hal <?= $n ?></a>
+  <?php endfor; ?>
+</div>
+
+<!-- SEMUA HALAMAN -->
+<div class="semua-halaman">
+<?php foreach ($pages_cetak as $page_idx => $rows_hal):
+    $no_global  = $offset_awal + $page_idx * $PER_HALAMAN; // offset nomor urut baris
+    $hal_ke     = ($hal_aktif > 0) ? $hal_aktif : ($page_idx + 1);
+    $total      = count($rows_hal);
+?>
+
+<?php if ($page_idx > 0): ?>
+<div class="page-break-label">— Halaman <?= $hal_ke ?> —</div>
+<?php endif; ?>
+
 <div class="halaman">
 
   <!-- KOP SURAT -->
@@ -446,32 +522,33 @@ if ($urut !== '' && $rows) {
   <div class="judul-area">
     <div class="judul"><?= $judul_laporan[$jenis] ?></div>
     <div class="sub-judul">BPPMDDTT Banjarmasin</div>
-    <div class="periode">Periode: <?= date('d F Y',strtotime($tgl_dari)) ?> s/d <?= date('d F Y',strtotime($tgl_sampai)) ?></div>
+    <div class="periode">
+      Periode: <?= date('d F Y',strtotime($tgl_dari)) ?> s/d <?= date('d F Y',strtotime($tgl_sampai)) ?>
+      &nbsp;·&nbsp; Halaman <?= $hal_ke ?> dari <?= $total_hal ?>
+    </div>
   </div>
-
-  <?php $total = count($rows); ?>
 
   <!-- RINGKASAN STATISTIK -->
   <?php if ($jenis === 'pelatihan'): ?>
   <div class="ringkasan">
     <div class="ringkasan-item"><div class="angka"><?= $total ?></div><div class="label">Total Pelatihan</div></div>
-    <div class="ringkasan-item"><div class="angka"><?= array_sum(array_column($rows,'jml_peserta')) ?></div><div class="label">Total Peserta</div></div>
-    <div class="ringkasan-item"><div class="angka"><?= array_sum(array_column($rows,'jml_lulus')) ?></div><div class="label">Total Lulus</div></div>
-    <div class="ringkasan-item"><div class="angka"><?= count(array_filter($rows,fn($r)=>$r['status']==='aktif')) ?></div><div class="label">Pelatihan Aktif</div></div>
+    <div class="ringkasan-item"><div class="angka"><?= array_sum(array_column($rows_hal,'jml_peserta')) ?></div><div class="label">Total Peserta</div></div>
+    <div class="ringkasan-item"><div class="angka"><?= array_sum(array_column($rows_hal,'jml_lulus')) ?></div><div class="label">Total Lulus</div></div>
+    <div class="ringkasan-item"><div class="angka"><?= count(array_filter($rows_hal,fn($r)=>$r['status']==='aktif')) ?></div><div class="label">Pelatihan Aktif</div></div>
   </div>
   <?php elseif ($jenis === 'peserta'): ?>
   <div class="ringkasan">
     <div class="ringkasan-item"><div class="angka"><?= $total ?></div><div class="label">Total Data</div></div>
-    <div class="ringkasan-item"><div class="angka"><?= count(array_filter($rows,fn($r)=>$r['status_lulus']==='lulus')) ?></div><div class="label">Lulus</div></div>
-    <div class="ringkasan-item"><div class="angka"><?= count(array_filter($rows,fn($r)=>$r['status_lulus']==='tidak_lulus')) ?></div><div class="label">Tidak Lulus</div></div>
-    <div class="ringkasan-item"><div class="angka"><?= count(array_filter($rows,fn($r)=>$r['status_kehadiran']==='hadir')) ?></div><div class="label">Hadir</div></div>
+    <div class="ringkasan-item"><div class="angka"><?= count(array_filter($rows_hal,fn($r)=>$r['status_lulus']==='lulus')) ?></div><div class="label">Lulus</div></div>
+    <div class="ringkasan-item"><div class="angka"><?= count(array_filter($rows_hal,fn($r)=>$r['status_lulus']==='tidak_lulus')) ?></div><div class="label">Tidak Lulus</div></div>
+    <div class="ringkasan-item"><div class="angka"><?= count(array_filter($rows_hal,fn($r)=>$r['status_kehadiran']==='hadir')) ?></div><div class="label">Hadir</div></div>
   </div>
   <?php elseif ($jenis === 'alumni'): ?>
   <div class="ringkasan">
     <div class="ringkasan-item"><div class="angka"><?= $total ?></div><div class="label">Total Alumni</div></div>
-    <div class="ringkasan-item"><div class="angka"><?= count(array_filter($rows,fn($r)=>$r['status_pekerjaan']==='bekerja')) ?></div><div class="label">Bekerja</div></div>
-    <div class="ringkasan-item"><div class="angka"><?= count(array_filter($rows,fn($r)=>$r['status_pekerjaan']==='wirausaha')) ?></div><div class="label">Wirausaha</div></div>
-    <div class="ringkasan-item"><div class="angka"><?= count(array_filter($rows,fn($r)=>$r['status_pekerjaan']==='belum_bekerja')) ?></div><div class="label">Belum Bekerja</div></div>
+    <div class="ringkasan-item"><div class="angka"><?= count(array_filter($rows_hal,fn($r)=>$r['status_pekerjaan']==='bekerja')) ?></div><div class="label">Bekerja</div></div>
+    <div class="ringkasan-item"><div class="angka"><?= count(array_filter($rows_hal,fn($r)=>$r['status_pekerjaan']==='wirausaha')) ?></div><div class="label">Wirausaha</div></div>
+    <div class="ringkasan-item"><div class="angka"><?= count(array_filter($rows_hal,fn($r)=>$r['status_pekerjaan']==='belum_bekerja')) ?></div><div class="label">Belum Bekerja</div></div>
   </div>
   <?php elseif ($jenis === 'tracer'): ?>
   <div class="ringkasan">
@@ -484,17 +561,17 @@ if ($urut !== '' && $rows) {
   <?php elseif ($jenis === 'rktl'): ?>
   <div class="ringkasan">
     <div class="ringkasan-item"><div class="angka"><?= $total ?></div><div class="label">Total RKTL</div></div>
-    <div class="ringkasan-item"><div class="angka"><?= count(array_filter($rows,fn($r)=>$r['status']==='berjalan')) ?></div><div class="label">Berjalan</div></div>
-    <div class="ringkasan-item"><div class="angka"><?= count(array_filter($rows,fn($r)=>$r['status']==='selesai')) ?></div><div class="label">Selesai</div></div>
-    <div class="ringkasan-item"><div class="angka"><?= count(array_filter($rows,fn($r)=>$r['status']==='terhambat')) ?></div><div class="label">Terhambat</div></div>
+    <div class="ringkasan-item"><div class="angka"><?= count(array_filter($rows_hal,fn($r)=>$r['status']==='berjalan')) ?></div><div class="label">Berjalan</div></div>
+    <div class="ringkasan-item"><div class="angka"><?= count(array_filter($rows_hal,fn($r)=>$r['status']==='selesai')) ?></div><div class="label">Selesai</div></div>
+    <div class="ringkasan-item"><div class="angka"><?= count(array_filter($rows_hal,fn($r)=>$r['status']==='terhambat')) ?></div><div class="label">Terhambat</div></div>
   </div>
   <?php elseif ($jenis === 'kelulusan'): ?>
   <div class="ringkasan">
     <div class="ringkasan-item"><div class="angka"><?= $total ?></div><div class="label">Total Pelatihan</div></div>
-    <div class="ringkasan-item"><div class="angka"><?= array_sum(array_column($rows,'total_peserta')) ?></div><div class="label">Total Peserta</div></div>
-    <div class="ringkasan-item"><div class="angka"><?= array_sum(array_column($rows,'lulus')) ?></div><div class="label">Total Lulus</div></div>
+    <div class="ringkasan-item"><div class="angka"><?= array_sum(array_column($rows_hal,'total_peserta')) ?></div><div class="label">Total Peserta</div></div>
+    <div class="ringkasan-item"><div class="angka"><?= array_sum(array_column($rows_hal,'lulus')) ?></div><div class="label">Total Lulus</div></div>
     <div class="ringkasan-item">
-      <?php $tot_p = array_sum(array_column($rows,'total_peserta')); $tot_l = array_sum(array_column($rows,'lulus')); ?>
+      <?php $tot_p = array_sum(array_column($rows_hal,'total_peserta')); $tot_l = array_sum(array_column($rows_hal,'lulus')); ?>
       <div class="angka"><?= $tot_p > 0 ? round($tot_l/$tot_p*100,1) : 0 ?>%</div>
       <div class="label">Rata % Lulus</div>
     </div>
@@ -507,9 +584,9 @@ if ($urut !== '' && $rows) {
   <table>
     <thead><tr><th>No</th><th>Nama Pelatihan</th><th>Jenis</th><th>Instruktur</th><th>Tgl Mulai</th><th>Tgl Selesai</th><th>Peserta</th><th>Lulus</th><th>Tidak Lulus</th><th>Rata Nilai</th><th>Status</th></tr></thead>
     <tbody>
-    <?php foreach ($rows as $i=>$r): ?>
+    <?php foreach ($rows_hal as $i=>$r): ?>
       <tr>
-        <td><?= $i+1 ?></td>
+        <td><?= $no_global + $i + 1 ?></td>
         <td><strong><?= htmlspecialchars($r['nama_pelatihan']) ?></strong></td>
         <td><?= htmlspecialchars($r['jenis']??'-') ?></td>
         <td><?= htmlspecialchars($r['nama_instruktur']) ?></td>
@@ -526,9 +603,9 @@ if ($urut !== '' && $rows) {
     <tfoot>
       <tr style="font-weight:bold;background:#f6f6f6;">
         <td colspan="6">Jumlah</td>
-        <td style="text-align:center"><?= array_sum(array_column($rows,'jml_peserta')) ?></td>
-        <td style="text-align:center"><?= array_sum(array_column($rows,'jml_lulus')) ?></td>
-        <td style="text-align:center"><?= array_sum(array_column($rows,'jml_tidak_lulus')) ?></td>
+        <td style="text-align:center"><?= array_sum(array_column($rows_hal,'jml_peserta')) ?></td>
+        <td style="text-align:center"><?= array_sum(array_column($rows_hal,'jml_lulus')) ?></td>
+        <td style="text-align:center"><?= array_sum(array_column($rows_hal,'jml_tidak_lulus')) ?></td>
         <td style="text-align:center">-</td>
         <td></td>
       </tr>
@@ -539,9 +616,9 @@ if ($urut !== '' && $rows) {
   <table>
     <thead><tr><th>No</th><th>Nama Peserta</th><th>Pelatihan</th><th>Instruktur</th><th>Tgl Mulai</th><th>Kehadiran</th><th>Nilai</th><th>Status Lulus</th></tr></thead>
     <tbody>
-    <?php foreach ($rows as $i=>$r): ?>
+    <?php foreach ($rows_hal as $i=>$r): ?>
       <tr>
-        <td><?= $i+1 ?></td>
+        <td><?= $no_global + $i + 1 ?></td>
         <td><strong><?= htmlspecialchars($r['nama_peserta']) ?></strong><br><small style="color:#666"><?= $r['email'] ?></small></td>
         <td><?= htmlspecialchars($r['nama_pelatihan']) ?></td>
         <td><?= htmlspecialchars($r['nama_instruktur']) ?></td>
@@ -558,9 +635,9 @@ if ($urut !== '' && $rows) {
   <table>
     <thead><tr><th>No</th><th>Nama Alumni</th><th>Tgl Lulus</th><th>Jml Pelatihan</th><th>Kompetensi</th><th>Status Pekerjaan</th><th>Perusahaan / Jabatan</th></tr></thead>
     <tbody>
-    <?php foreach ($rows as $i=>$r): ?>
+    <?php foreach ($rows_hal as $i=>$r): ?>
       <tr>
-        <td><?= $i+1 ?></td>
+        <td><?= $no_global + $i + 1 ?></td>
         <td><strong><?= htmlspecialchars($r['name']) ?></strong><br><small style="color:#666"><?= $r['email'] ?></small></td>
         <td><?= $r['tanggal_lulus'] ? date('d/m/Y',strtotime($r['tanggal_lulus'])) : '-' ?></td>
         <td style="text-align:center"><?= $r['jml_pelatihan'] ?></td>
@@ -578,7 +655,7 @@ if ($urut !== '' && $rows) {
     <tfoot>
       <tr style="font-weight:bold;background:#f6f6f6;">
         <td colspan="3">Jumlah Alumni</td>
-        <td style="text-align:center"><?= array_sum(array_column($rows,'jml_pelatihan')) ?></td>
+        <td style="text-align:center"><?= array_sum(array_column($rows_hal,'jml_pelatihan')) ?></td>
         <td colspan="3"></td>
       </tr>
     </tfoot>
@@ -588,9 +665,9 @@ if ($urut !== '' && $rows) {
   <table>
     <thead><tr><th>No</th><th>Nama Alumni</th><th>Status Pekerjaan</th><th>Perusahaan</th><th>Jabatan</th><th>Gaji</th><th>Relevansi</th><th>Waktu Tunggu</th><th>Tgl Isi</th></tr></thead>
     <tbody>
-    <?php foreach ($rows as $i=>$r): ?>
+    <?php foreach ($rows_hal as $i=>$r): ?>
       <tr>
-        <td><?= $i+1 ?></td>
+        <td><?= $no_global + $i + 1 ?></td>
         <td><strong><?= htmlspecialchars($r['nama_alumni']) ?></strong></td>
         <td><?php $sp=['bekerja'=>'badge-success','wirausaha'=>'badge-info','belum_bekerja'=>'badge-warning','melanjutkan_studi'=>'badge-primary']; ?><span class="badge <?= $sp[$r['status_pekerjaan']]??'badge-secondary' ?>"><?= ucfirst(str_replace('_',' ',$r['status_pekerjaan']??'-')) ?></span></td>
         <td><?= htmlspecialchars($r['nama_perusahaan']??'-') ?></td>
@@ -615,9 +692,9 @@ if ($urut !== '' && $rows) {
   <table>
     <thead><tr><th>No</th><th>Nama Alumni</th><th>Pelatihan</th><th>Instruktur</th><th>Tgl Pendampingan</th><th>Rencana Kerja</th><th>Progres</th><th>Status</th><th>Tgl Verifikasi</th></tr></thead>
     <tbody>
-    <?php foreach ($rows as $i=>$r): ?>
+    <?php foreach ($rows_hal as $i=>$r): ?>
       <tr>
-        <td><?= $i+1 ?></td>
+        <td><?= $no_global + $i + 1 ?></td>
         <td><strong><?= htmlspecialchars($r['nama_alumni']) ?></strong></td>
         <td><?= htmlspecialchars($r['nama_pelatihan']) ?></td>
         <td><?= htmlspecialchars($r['nama_instruktur']) ?></td>
@@ -638,9 +715,9 @@ if ($urut !== '' && $rows) {
   <table>
     <thead><tr><th>No</th><th>Nama Alumni</th><th>Pelatihan Direkomendasikan</th><th>Kategori</th><th>Tgl Mulai</th><th>Skor</th><th>Alasan</th><th>Dilihat</th></tr></thead>
     <tbody>
-    <?php foreach ($rows as $i=>$r): ?>
+    <?php foreach ($rows_hal as $i=>$r): ?>
       <tr>
-        <td><?= $i+1 ?></td>
+        <td><?= $no_global + $i + 1 ?></td>
         <td><strong><?= htmlspecialchars($r['nama_alumni']) ?></strong></td>
         <td><?= htmlspecialchars($r['nama_pelatihan']) ?></td>
         <td><?= htmlspecialchars($r['jenis']??'-') ?></td>
@@ -657,9 +734,9 @@ if ($urut !== '' && $rows) {
   <table>
     <thead><tr><th>No</th><th>Nama Pelatihan</th><th>Instruktur</th><th>Tgl Selesai</th><th>Total</th><th>Lulus</th><th>Tdk Lulus</th><th>% Lulus</th><th>Rata Nilai</th><th>Maks</th><th>Min</th></tr></thead>
     <tbody>
-    <?php foreach ($rows as $i=>$r): ?>
+    <?php foreach ($rows_hal as $i=>$r): ?>
       <tr>
-        <td><?= $i+1 ?></td>
+        <td><?= $no_global + $i + 1 ?></td>
         <td><strong><?= htmlspecialchars($r['nama_pelatihan']) ?></strong></td>
         <td><?= htmlspecialchars($r['nama_instruktur']) ?></td>
         <td><?= date('d/m/Y',strtotime($r['tanggal_selesai'])) ?></td>
@@ -679,13 +756,13 @@ if ($urut !== '' && $rows) {
     <tfoot>
       <tr style="font-weight:bold;background:#f6f6f6;">
         <td colspan="4">Jumlah</td>
-        <td style="text-align:center"><?= array_sum(array_column($rows,'total_peserta')) ?></td>
-        <td style="text-align:center"><?= array_sum(array_column($rows,'lulus')) ?></td>
-        <td style="text-align:center"><?= array_sum(array_column($rows,'tidak_lulus')) ?></td>
-        <td style="text-align:center"><?= array_sum(array_column($rows,'total_peserta')) ? round(array_sum(array_column($rows,'lulus'))/array_sum(array_column($rows,'total_peserta'))*100,1) : 0 ?>%</td>
+        <td style="text-align:center"><?= array_sum(array_column($rows_hal,'total_peserta')) ?></td>
+        <td style="text-align:center"><?= array_sum(array_column($rows_hal,'lulus')) ?></td>
+        <td style="text-align:center"><?= array_sum(array_column($rows_hal,'tidak_lulus')) ?></td>
+        <td style="text-align:center"><?= array_sum(array_column($rows_hal,'total_peserta')) ? round(array_sum(array_column($rows_hal,'lulus'))/array_sum(array_column($rows_hal,'total_peserta'))*100,1) : 0 ?>%</td>
         <td style="text-align:center">-</td>
-        <td style="text-align:center"><?= $rows ? max(array_filter(array_column($rows,'nilai_max'),fn($v)=>$v!==null && $v!=='')) : '-' ?></td>
-        <td style="text-align:center"><?= $rows ? min(array_filter(array_column($rows,'nilai_min'),fn($v)=>$v!==null && $v!=='')) : '-' ?></td>
+        <td style="text-align:center"><?= $rows ? max(array_filter(array_column($rows_hal,'nilai_max'),fn($v)=>$v!==null && $v!=='')) : '-' ?></td>
+        <td style="text-align:center"><?= $rows ? min(array_filter(array_column($rows_hal,'nilai_min'),fn($v)=>$v!==null && $v!=='')) : '-' ?></td>
       </tr>
     </tfoot>
   </table>
@@ -757,10 +834,13 @@ if ($urut !== '' && $rows) {
   <div class="footer-lap">
     <span>Dicetak oleh: <?= htmlspecialchars($_SESSION['nama']) ?> · <?= date('d/m/Y H:i') ?></span>
     <span>BPPMDDTT Banjarmasin · Aplikasi Monitoring dan Manajemen Data Alumni, Pelatih</span>
-    <span>Total Data: <?= $total ?> baris</span>
+    <span>Halaman <?= $hal_ke ?>/<?= $total_hal ?> · Total <?= $total_semua ?> data</span>
   </div>
 
 </div><!-- end halaman -->
+
+<?php endforeach; // end foreach pages_cetak ?>
+</div><!-- end semua-halaman -->
 
 <script>
 function buildUrutUrl(urut, arah) {
